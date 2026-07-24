@@ -62,8 +62,8 @@ function makeJelly(name, hue, fx, fy, scale, seed) {
 }
 
 const jellies = [
-  makeJelly("james",  330, 0.25, 0.38, 1.05, 0.7),
-  makeJelly("tess",   215, 0.55, 0.5,  0.9,  2.9),
+  makeJelly("james",  215, 0.25, 0.38, 1.05, 0.7),
+  makeJelly("tess",   330, 0.55, 0.5,  0.9,  2.9),
   makeJelly("johnny", 145, 0.78, 0.34, 1.0,  5.3),
 ];
 
