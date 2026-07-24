@@ -9,7 +9,7 @@ const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let W = 0, H = 0, DPR = 1;
 
 function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   W = window.innerWidth;
   H = window.innerHeight;
   canvas.width = Math.round(W * DPR);
@@ -125,23 +125,30 @@ function simulateRope(rope, anchorX, anchorY, t, idx, sway, flare = 0) {
   }
 }
 
+// Glow is faked with a wide translucent halo stroke under a thin bright
+// core — canvas shadowBlur is catastrophically slow without GPU accel.
 function drawRope(rope, width, color, glow) {
   const pts = rope.pts;
-  ctx.strokeStyle = color;
-  ctx.shadowColor = glow;
-  ctx.shadowBlur = 8;
-  ctx.lineCap = "round";
-  for (let i = 0; i < pts.length - 1; i++) {
-    const taper = 1 - i / pts.length;
-    ctx.lineWidth = Math.max(0.4, width * taper);
-    ctx.globalAlpha = 0.36 + 0.42 * taper;
-    ctx.beginPath();
-    ctx.moveTo(pts[i].x, pts[i].y);
-    ctx.lineTo(pts[i + 1].x, pts[i + 1].y);
-    ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i].x + pts[i + 1].x) / 2;
+    const my = (pts[i].y + pts[i + 1].y) / 2;
+    ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
   }
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  ctx.strokeStyle = glow;
+  ctx.globalAlpha = 0.10;
+  ctx.lineWidth = width * 3.5;
+  ctx.stroke();
+
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = 0.55;
+  ctx.lineWidth = width;
+  ctx.stroke();
   ctx.globalAlpha = 1;
-  ctx.shadowBlur = 0;
 }
 
 // ── plankton + ripples ─────────────────────────────────────────────────────
@@ -245,13 +252,13 @@ function drawJelly(j, t) {
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // rim light
+  // rim light — halo pass + bright core, no shadowBlur
+  ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.14)`;
+  ctx.lineWidth = 9;
+  ctx.stroke();
   ctx.strokeStyle = `hsla(${hue}, 100%, 82%, 0.55)`;
   ctx.lineWidth = 1.6;
-  ctx.shadowColor = `hsla(${hue}, 100%, 70%, 0.9)`;
-  ctx.shadowBlur = 18;
   ctx.stroke();
-  ctx.shadowBlur = 0;
 
   // inner organs — four glowing gonad rings
   for (let i = 0; i < 4; i++) {
@@ -280,10 +287,7 @@ function drawJelly(j, t) {
   ctx.font = "600 13px ui-monospace, Menlo, monospace";
   ctx.textAlign = "center";
   ctx.fillStyle = `hsla(${hue}, 85%, 80%, 0.75)`;
-  ctx.shadowColor = `hsla(${hue}, 90%, 70%, 0.9)`;
-  ctx.shadowBlur = 10;
   ctx.fillText(j.name, j.x, j.y - bh * 1.45 - 12 + 3 * Math.sin(t * 1.1 + j.seed));
-  ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = "source-over";
 }
 
