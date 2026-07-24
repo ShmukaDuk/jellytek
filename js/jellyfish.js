@@ -30,8 +30,22 @@ window.addEventListener("pointerdown", (e) => {
   pointer.x = e.clientX;
   pointer.y = e.clientY;
   pointer.activeUntil = performance.now() + 3500;
-  nearestJelly(e.clientX, e.clientY).phaseSpeed = 7;   // startled — pulse burst
   ripples.push({ x: e.clientX, y: e.clientY, r: 8, alpha: 0.5 });
+
+  const j = nearestJelly(e.clientX, e.clientY);
+  const d = Math.hypot(j.x - e.clientX, j.y - e.clientY);
+  if (d < bellRadius(j) * 3.2) {
+    j.phaseSpeed = 6;                                  // startled — pulse burst
+    j.vx += ((j.x - e.clientX) / (d || 1)) * 340;      // poke bounces it away
+    j.vy += ((j.y - e.clientY) / (d || 1)) * 340;
+    const now = performance.now();
+    j.clickTimes = j.clickTimes.filter((ts) => now - ts < 2200);
+    j.clickTimes.push(now);
+    if (j.clickTimes.length >= 5) {
+      j.clickTimes = [];
+      explode(j);
+    }
+  }
 });
 
 // ── the school ─────────────────────────────────────────────────────────────
@@ -51,10 +65,12 @@ function makeRope(segments, segLen, x, y) {
 function makeJelly(name, hue, fx, fy, scale, seed) {
   return {
     name, hue, scale, seed,
+    fullScale: scale,               // rebirth shrinks scale; it grows back to this
+    clickTimes: [],
     x: W * fx, y: H * fy,
     vx: 0, vy: 0,
     phase: seed * 2.1,
-    phaseSpeed: 2.2,
+    phaseSpeed: 1.4,
     tilt: 0,
     tentacles: [],
     oralArms: [],
@@ -69,14 +85,20 @@ const jellies = [
 
 const bellRadius = (j) => Math.min(W, H) * 0.105 * j.scale;
 
+// Middle tentacles run longest, the rim ones stay short — a real bell
+// silhouette instead of uniform noodles.
+const tentacleLenF = (along) => 0.55 + 0.5 * Math.sin(along * Math.PI);
+
+function rebuildJellyRopes(j) {
+  const R = bellRadius(j);
+  j.tentacles = Array.from({ length: TENTACLES }, (_, i) =>
+    makeRope(SEGS, R * 0.24 * tentacleLenF(i / (TENTACLES - 1)), j.x, j.y));
+  j.oralArms = Array.from({ length: ORAL_ARMS }, () =>
+    makeRope(ORAL_SEGS, R * 0.17, j.x, j.y));
+}
+
 function buildRopes() {
-  for (const j of jellies) {
-    const R = bellRadius(j);
-    j.tentacles = Array.from({ length: TENTACLES }, () =>
-      makeRope(SEGS, R * 0.24, j.x, j.y));
-    j.oralArms = Array.from({ length: ORAL_ARMS }, () =>
-      makeRope(ORAL_SEGS, R * 0.2, j.x, j.y));
-  }
+  for (const j of jellies) rebuildJellyRopes(j);
 }
 buildRopes();
 
@@ -107,7 +129,12 @@ function simulateRope(rope, anchorX, anchorY, t, idx, sway, flare = 0) {
     const vy = (p.y - p.py) * 0.92;
     p.px = p.x;
     p.py = p.y;
-    p.x += vx + Math.sin(t * 1.4 + idx * 1.7 + i * 0.28) * sway + flare * (i / pts.length);
+    // two superposed waves, amplitude growing toward the tip — flutter, not noodle
+    const along = i / pts.length;
+    const wave =
+      Math.sin(t * 1.1 + idx * 1.7 + i * 0.35) +
+      0.5 * Math.sin(t * 2.3 + idx * 2.9 + i * 0.5);
+    p.x += vx + wave * sway * (0.25 + 0.75 * along) + flare * along;
     p.y += vy + 0.09;                 // buoyant-drag settle
   }
 
@@ -125,29 +152,43 @@ function simulateRope(rope, anchorX, anchorY, t, idx, sway, flare = 0) {
   }
 }
 
-// Glow is faked with a wide translucent halo stroke under a thin bright
-// core — canvas shadowBlur is catastrophically slow without GPU accel.
-function drawRope(rope, width, color, glow) {
-  const pts = rope.pts;
+// Glow is faked with a wide translucent halo stroke under a bright core —
+// canvas shadowBlur is catastrophically slow without GPU accel. The core is
+// stroked in three width steps so ropes taper from base to a fine tip.
+function tracePath(pts, a, b) {
   ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length - 1; i++) {
+  ctx.moveTo(pts[a].x, pts[a].y);
+  for (let i = a + 1; i < b; i++) {
     const mx = (pts[i].x + pts[i + 1].x) / 2;
     const my = (pts[i].y + pts[i + 1].y) / 2;
     ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
   }
+}
+
+function drawRope(rope, width, color, glow) {
+  const pts = rope.pts;
+  const n = pts.length;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
+  tracePath(pts, 0, n - 1);
   ctx.strokeStyle = glow;
-  ctx.globalAlpha = 0.10;
-  ctx.lineWidth = width * 3.5;
+  ctx.globalAlpha = 0.09;
+  ctx.lineWidth = width * 3.2;
   ctx.stroke();
 
   ctx.strokeStyle = color;
-  ctx.globalAlpha = 0.55;
-  ctx.lineWidth = width;
-  ctx.stroke();
+  const steps = [
+    [0, Math.floor(n * 0.45), 1, 0.55],
+    [Math.floor(n * 0.45), Math.floor(n * 0.75), 0.55, 0.4],
+    [Math.floor(n * 0.75), n - 1, 0.3, 0.26],
+  ];
+  for (const [a, b, wf, alpha] of steps) {
+    tracePath(pts, a, b);
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = Math.max(0.5, width * wf);
+    ctx.stroke();
+  }
   ctx.globalAlpha = 1;
 }
 
@@ -162,6 +203,87 @@ const plankton = Array.from({ length: 90 }, () => ({
 }));
 
 const ripples = [];
+
+// ── explosions: 5 quick pokes pops a jelly; a baby regrows in its place ────
+const sparks = [];
+
+function explode(j) {
+  const R = bellRadius(j);
+  for (let i = 0; i < 60; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 40 + Math.random() * 260;
+    sparks.push({
+      x: j.x, y: j.y - R * 0.5,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 30,
+      life: 0.8 + Math.random() * 0.9,
+      age: 0,
+      hue: j.hue + Math.random() * 40 - 20,
+      r: 1 + Math.random() * 2.5,
+    });
+  }
+  ripples.push({ x: j.x, y: j.y - R * 0.5, r: R * 0.4, alpha: 0.8 });
+  j.scale = j.fullScale * 0.28;      // reborn as a baby
+  j.vx = 0;
+  j.vy = 0;
+  j.phaseSpeed = 3.5;                // babies flutter fast, then calm down
+  rebuildJellyRopes(j);
+}
+
+function drawSparks(dt) {
+  ctx.globalCompositeOperation = "lighter";
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const s = sparks[i];
+    s.age += dt;
+    if (s.age >= s.life) { sparks.splice(i, 1); continue; }
+    s.vx *= 1 - 1.6 * dt;
+    s.vy = s.vy * (1 - 1.6 * dt) - 50 * dt;    // buoyant embers drift upward
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    const a = 1 - s.age / s.life;
+    ctx.fillStyle = `hsla(${s.hue}, 95%, 75%, ${0.7 * a})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r * (0.5 + a * 0.8), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
+// ── water surface (top 15% is air; everything lives below the waterline) ────
+const SURFACE_FRAC = 0.15;
+
+function surfaceLevel(x, t) {
+  return (
+    H * SURFACE_FRAC +
+    Math.sin(x * 0.008 + t * 0.9) * 3 +
+    Math.sin(x * 0.017 - t * 1.3) * 2
+  );
+}
+
+function drawSurface(t) {
+  // hazy air above the waterline
+  ctx.fillStyle = "rgba(190, 215, 235, 0.04)";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(W, 0);
+  ctx.lineTo(W, surfaceLevel(W, t));
+  for (let x = W; x >= 0; x -= 16) ctx.lineTo(x, surfaceLevel(x, t));
+  ctx.closePath();
+  ctx.fill();
+
+  // glowing waterline
+  ctx.globalCompositeOperation = "lighter";
+  ctx.strokeStyle = "hsla(195, 80%, 80%, 0.22)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let x = 0; x <= W; x += 12) {
+    const y = surfaceLevel(x, t);
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalCompositeOperation = "source-over";
+}
 
 // ── god rays (crepuscular light shafts drifting down from the surface) ───────
 const rays = Array.from({ length: 7 }, (_, i) => ({
@@ -181,13 +303,14 @@ function drawRays(t) {
     const w = W * r.width * (0.85 + 0.15 * Math.sin(t * 0.7 + r.seed));
     const a = 0.03 + 0.025 * (0.5 + 0.5 * Math.sin(t * 0.5 + r.seed));
 
-    const grad = ctx.createLinearGradient(topX, 0, botX, H);
+    const surfY = H * SURFACE_FRAC;
+    const grad = ctx.createLinearGradient(topX, surfY, botX, H);
     grad.addColorStop(0, `hsla(${r.hue}, 95%, 78%, ${a})`);
     grad.addColorStop(1, `hsla(${r.hue}, 90%, 70%, 0)`);
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.moveTo(topX - w * 0.4, 0);
-    ctx.lineTo(topX + w * 0.4, 0);
+    ctx.moveTo(topX - w * 0.4, surfY);
+    ctx.lineTo(topX + w * 0.4, surfY);
     ctx.lineTo(botX + w, H);
     ctx.lineTo(botX - w, H);
     ctx.closePath();
@@ -197,9 +320,9 @@ function drawRays(t) {
 }
 
 // ── rising bubbles ───────────────────────────────────────────────────────────
-const bubbles = Array.from({ length: 34 }, () => ({
+const bubbles = Array.from({ length: 30 }, () => ({
   x: Math.random() * 4000,
-  y: Math.random() * 4000,
+  y: H * (0.2 + Math.random() * 0.8),
   r: 1 + Math.random() * 4,
   vy: 0.4 + Math.random() * 1.1,
   wobble: 0.4 + Math.random() * 1.4,
@@ -210,9 +333,10 @@ function drawBubbles(t) {
   ctx.globalCompositeOperation = "lighter";
   for (const b of bubbles) {
     b.y -= b.vy;
-    if (b.y < -10) { b.y = H + 10; b.x = Math.random() * W; }
+    // pop at the waterline, respawn at the sea floor
+    if (b.y < H * SURFACE_FRAC + 4) { b.y = H + 10; b.x = Math.random() * W; }
     const x = ((b.x + Math.sin(t * b.wobble + b.seed) * 14) % W + W) % W;
-    const y = b.y % (H + 20);
+    const y = b.y;
     ctx.strokeStyle = `hsla(195, 90%, 82%, 0.28)`;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -236,16 +360,16 @@ function updateJelly(j, t, dt, chaser) {
     tx = pointer.x;
     ty = pointer.y - R * 1.6;         // hover above the cursor, tentacles reach it
   } else {
-    tx = W * (0.5 + 0.34 * Math.sin(t * (0.17 + j.seed * 0.013) + j.seed));
-    ty = H * (0.4 + 0.15 * Math.sin(t * (0.11 + j.seed * 0.017) + j.seed * 2.3));
+    tx = W * (0.5 + 0.30 * Math.sin(t * (0.10 + j.seed * 0.009) + j.seed));
+    ty = H * (0.55 + 0.20 * Math.sin(t * (0.07 + j.seed * 0.011) + j.seed * 2.3));
   }
 
   // contraction (falling edge of the pulse) provides thrust toward target
-  const thrust = Math.max(0, -Math.cos(j.phase)) * 0.035;
+  const thrust = Math.max(0, -Math.cos(j.phase)) * 0.016;
   const dx = tx - j.x, dy = ty - j.y;
   const dist = Math.hypot(dx, dy) || 1;
-  j.vx += (dx / dist) * thrust * Math.min(dist, 120);
-  j.vy += (dy / dist) * thrust * Math.min(dist, 120);
+  j.vx += (dx / dist) * thrust * Math.min(dist, 90);
+  j.vy += (dy / dist) * thrust * Math.min(dist, 90);
 
   // personal space — gentle mutual repulsion keeps the school untangled
   for (const other of jellies) {
@@ -259,12 +383,24 @@ function updateJelly(j, t, dt, chaser) {
     }
   }
 
-  j.vx *= 0.985;
-  j.vy *= 0.985;
+  j.vx *= 0.98;
+  j.vy *= 0.98;
   j.x += j.vx * dt;
   j.y += j.vy * dt;
 
-  j.phaseSpeed += (2.2 - j.phaseSpeed) * 0.02;   // recover after startle
+  // babies grow slowly back to full size
+  if (j.scale < j.fullScale - 0.001) {
+    j.scale += (j.fullScale - j.scale) * 0.045 * dt;
+  }
+
+  // never above the waterline
+  const minY = H * SURFACE_FRAC + R * 1.9;
+  if (j.y < minY) {
+    j.y = minY;
+    if (j.vy < 0) j.vy *= -0.35;
+  }
+
+  j.phaseSpeed += (1.4 - j.phaseSpeed) * 0.02;   // recover after startle
   j.phase += j.phaseSpeed * dt;
   j.tilt += (Math.max(-0.5, Math.min(0.5, j.vx * 0.004)) - j.tilt) * 0.05;
 }
@@ -280,16 +416,19 @@ function drawJelly(j, t) {
   ctx.globalCompositeOperation = "lighter";
   for (let i = 0; i < TENTACLES; i++) {
     const along = i / (TENTACLES - 1);            // 0..1 across the rim
+    // segLen tracks the current bell size, so tentacles grow with a baby
+    j.tentacles[i].segLen = R * 0.24 * tentacleLenF(along);
     const ax = j.x + Math.cos(j.tilt) * (along * 2 - 1) * bw * 0.82;
     const ay = j.y + Math.sin(j.tilt) * (along * 2 - 1) * bw * 0.82 + bh * 0.05;
-    simulateRope(j.tentacles[i], ax, ay, t, i + j.seed, 0.5, (along * 2 - 1) * 0.3);
-    drawRope(j.tentacles[i], 1.6, `hsla(${hue + 20}, 85%, 72%, 0.55)`, `hsla(${hue}, 90%, 70%, 0.8)`);
+    simulateRope(j.tentacles[i], ax, ay, t, i + j.seed, 0.55, (along * 2 - 1) * 0.22);
+    drawRope(j.tentacles[i], 1.4, `hsla(${hue + 20}, 85%, 72%, 0.55)`, `hsla(${hue}, 90%, 70%, 0.8)`);
   }
   for (let i = 0; i < ORAL_ARMS; i++) {
     const ax = j.x + ((i / (ORAL_ARMS - 1)) * 2 - 1) * bw * 0.3;
+    j.oralArms[i].segLen = R * 0.17;
     simulateRope(j.oralArms[i], ax, j.y + bh * 0.1, t, i + 20 + j.seed, 0.6,
       ((i / (ORAL_ARMS - 1)) * 2 - 1) * 0.22);
-    drawRope(j.oralArms[i], 4.5, `hsla(${hue + 40}, 70%, 78%, 0.30)`, `hsla(${hue + 40}, 80%, 70%, 0.6)`);
+    drawRope(j.oralArms[i], 4, `hsla(${hue + 40}, 70%, 78%, 0.30)`, `hsla(${hue + 40}, 80%, 70%, 0.6)`);
   }
 
   // bell
@@ -359,6 +498,8 @@ function drawJelly(j, t) {
 function drawFrame(t, dt) {
   ctx.clearRect(0, 0, W, H);
 
+  drawSurface(t);
+
   // god rays sink behind everything else
   drawRays(t);
 
@@ -369,6 +510,7 @@ function drawFrame(t, dt) {
     p.y -= p.vy;
     if (p.y < -5) p.y = H + 5 + Math.random() * 40;
     const y = p.y % (H + 10);
+    if (y < H * SURFACE_FRAC + 4) continue;   // plankton stays underwater
     const a = 0.10 + 0.14 * (0.5 + 0.5 * Math.sin(t * p.tw + p.seed));
     ctx.fillStyle = `hsla(${190 + 40 * Math.sin(p.seed)}, 90%, 75%, ${a})`;
     ctx.beginPath();
@@ -399,6 +541,8 @@ function drawFrame(t, dt) {
 
   for (const j of jellies) updateJelly(j, t, dt, chaser);
   for (const j of jellies) drawJelly(j, t);
+
+  drawSparks(dt);
 
   // bubbles drift up in the foreground
   drawBubbles(t);
