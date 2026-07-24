@@ -163,6 +163,70 @@ const plankton = Array.from({ length: 90 }, () => ({
 
 const ripples = [];
 
+// ── god rays (crepuscular light shafts drifting down from the surface) ───────
+const rays = Array.from({ length: 7 }, (_, i) => ({
+  base: 0.08 + i * 0.13,          // horizontal anchor as a fraction of width
+  width: 0.05 + Math.random() * 0.06,
+  drift: 0.2 + Math.random() * 0.5,
+  seed: Math.random() * Math.PI * 2,
+  hue: 190 + Math.random() * 30,
+}));
+
+function drawRays(t) {
+  ctx.globalCompositeOperation = "lighter";
+  for (const r of rays) {
+    const sway = Math.sin(t * r.drift + r.seed) * 0.06;
+    const topX = W * (r.base + sway);
+    const botX = W * (r.base + sway + 0.14);
+    const w = W * r.width * (0.85 + 0.15 * Math.sin(t * 0.7 + r.seed));
+    const a = 0.03 + 0.025 * (0.5 + 0.5 * Math.sin(t * 0.5 + r.seed));
+
+    const grad = ctx.createLinearGradient(topX, 0, botX, H);
+    grad.addColorStop(0, `hsla(${r.hue}, 95%, 78%, ${a})`);
+    grad.addColorStop(1, `hsla(${r.hue}, 90%, 70%, 0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(topX - w * 0.4, 0);
+    ctx.lineTo(topX + w * 0.4, 0);
+    ctx.lineTo(botX + w, H);
+    ctx.lineTo(botX - w, H);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
+// ── rising bubbles ───────────────────────────────────────────────────────────
+const bubbles = Array.from({ length: 34 }, () => ({
+  x: Math.random() * 4000,
+  y: Math.random() * 4000,
+  r: 1 + Math.random() * 4,
+  vy: 0.4 + Math.random() * 1.1,
+  wobble: 0.4 + Math.random() * 1.4,
+  seed: Math.random() * Math.PI * 2,
+}));
+
+function drawBubbles(t) {
+  ctx.globalCompositeOperation = "lighter";
+  for (const b of bubbles) {
+    b.y -= b.vy;
+    if (b.y < -10) { b.y = H + 10; b.x = Math.random() * W; }
+    const x = ((b.x + Math.sin(t * b.wobble + b.seed) * 14) % W + W) % W;
+    const y = b.y % (H + 20);
+    ctx.strokeStyle = `hsla(195, 90%, 82%, 0.28)`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x, y, b.r, 0, Math.PI * 2);
+    ctx.stroke();
+    // little highlight glint
+    ctx.fillStyle = `hsla(195, 100%, 90%, 0.35)`;
+    ctx.beginPath();
+    ctx.arc(x - b.r * 0.3, y - b.r * 0.3, b.r * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
 // ── per-jelly update + draw ────────────────────────────────────────────────
 function updateJelly(j, t, dt, chaser) {
   const R = bellRadius(j);
@@ -295,6 +359,9 @@ function drawJelly(j, t) {
 function drawFrame(t, dt) {
   ctx.clearRect(0, 0, W, H);
 
+  // god rays sink behind everything else
+  drawRays(t);
+
   // plankton field (screen-wrapped)
   ctx.globalCompositeOperation = "lighter";
   for (const p of plankton) {
@@ -332,6 +399,9 @@ function drawFrame(t, dt) {
 
   for (const j of jellies) updateJelly(j, t, dt, chaser);
   for (const j of jellies) drawJelly(j, t);
+
+  // bubbles drift up in the foreground
+  drawBubbles(t);
 }
 
 // ── loop ───────────────────────────────────────────────────────────────────
