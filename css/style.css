@@ -75,6 +75,44 @@ body {
   font-weight: 500;
 }
 
+/* hover easter egg: "hard tech." dissolves into "and hard beaners" */
+.flip {
+  display: inline-grid;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.flip > span {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease;
+}
+
+.flip-b {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(5px);
+  color: var(--pink);
+}
+
+.flip:hover .flip-a {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(-5px);
+}
+
+.flip:hover .flip-b {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip > span {
+    transition: opacity 0.35s ease;
+  }
+}
+
 .foot {
   display: flex;
   align-items: flex-end;
