@@ -74,6 +74,8 @@ function makeJelly(name, hue, fx, fy, scale, seed) {
     tilt: 0,
     tentacles: [],
     oralArms: [],
+    nextVisit: 0,      // time (s) of this jelly's next scheduled logo visit
+    visiting: false,   // currently swimming up to tap the logo
   };
 }
 
@@ -105,8 +107,46 @@ buildRopes();
 window.addEventListener("resize", () => {
   resize();
   buildRopes();
+  measureLogo();
   if (reducedMotion) drawFrame(0.4, 0);
 });
+
+// ── logo tinting: the wordmark takes the colour of whichever jelly last brushed it
+const wordmark = document.querySelector(".wordmark");
+let logoRect = null;
+let logoJelly = null;
+
+function measureLogo() {
+  logoRect = wordmark ? wordmark.getBoundingClientRect() : null;
+}
+measureLogo();
+window.addEventListener("load", measureLogo);
+
+function tintLogo(j) {
+  if (!wordmark || logoJelly === j) return;   // hold colour until a *different* jelly touches
+  logoJelly = j;
+  wordmark.style.setProperty("--logo", `hsl(${j.hue}, 88%, 74%)`);
+  wordmark.style.setProperty("--logo-glow", `hsla(${j.hue}, 90%, 66%, 0.5)`);
+}
+
+// True only when the bell (the jelly's head) overlaps the logo — not its
+// trailing tentacles, and not merely being nearby.
+function headTouchesLogo(j) {
+  if (!logoRect) return false;
+  const R = bellRadius(j);
+  const hx = j.x;
+  const hy = j.y - R * 0.55;          // centre of the dome, up above the rim
+  const nx = Math.max(logoRect.left, Math.min(hx, logoRect.right));
+  const ny = Math.max(logoRect.top, Math.min(hy, logoRect.bottom));
+  return Math.hypot(hx - nx, hy - ny) < R * 0.8;   // dome radius
+}
+
+function checkLogoTouch() {
+  if (!logoRect) return;
+  for (const j of jellies) {
+    if (headTouchesLogo(j)) { tintLogo(j); break; }
+  }
+}
 
 function nearestJelly(x, y) {
   let best = jellies[0], bestD = Infinity;
@@ -355,10 +395,25 @@ function drawBubbles(t) {
 function updateJelly(j, t, dt, chaser) {
   const R = bellRadius(j);
 
+  // schedule the first visit lazily, staggered so the three don't arrive together
+  if (j.nextVisit === 0) j.nextVisit = t + Math.random() * 10;
+
+  if (logoRect) {
+    if (!j.visiting && t >= j.nextVisit) j.visiting = true;   // time to go tap the logo
+    if (j.visiting && headTouchesLogo(j)) {
+      // head reached it — end the visit and come back in ~10s
+      j.visiting = false;
+      j.nextVisit = t + 9 + Math.random() * 3;
+    }
+  }
+
   let tx, ty;
   if (chaser === j) {
     tx = pointer.x;
     ty = pointer.y - R * 1.6;         // hover above the cursor, tentacles reach it
+  } else if (j.visiting && logoRect) {
+    tx = (logoRect.left + logoRect.right) / 2;   // make a beeline for the wordmark
+    ty = (logoRect.top + logoRect.bottom) / 2;
   } else {
     tx = W * (0.5 + 0.30 * Math.sin(t * (0.10 + j.seed * 0.009) + j.seed));
     ty = H * (0.55 + 0.20 * Math.sin(t * (0.07 + j.seed * 0.011) + j.seed * 2.3));
@@ -540,6 +595,7 @@ function drawFrame(t, dt) {
       : null;
 
   for (const j of jellies) updateJelly(j, t, dt, chaser);
+  checkLogoTouch();
   for (const j of jellies) drawJelly(j, t);
 
   drawSparks(dt);
