@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'" />
+        content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'" />
   <meta name="theme-color" content="#030712" />
   <meta name="description" content="jellytek — soft body. hard tech." />
   <meta property="og:title" content="jellytek" />
@@ -25,10 +25,15 @@
 
     <footer class="foot">
       <span class="chip"><span class="pulse"></span>online — drifting in the current</span>
-      <span class="copyright">© 2026 jellytek.net</span>
+      <span class="meta">
+        <span class="copyright">© 2026 jellytek.net</span>
+        <a class="commit" id="commit" href="https://github.com/ShmukaDuk/jellytek/commits/main"
+           target="_blank" rel="noopener">…</a>
+      </span>
     </footer>
   </main>
 
   <script src="js/jellyfish.js" defer></script>
+  <script src="js/version.js" defer></script>
 </body>
 </html>
