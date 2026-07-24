@@ -1,0 +1,146 @@
+/* Animatable custom property — lets the wordmark gradient angle tween
+   natively in CSS instead of via JS. */
+@property --grad-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 120deg;
+}
+
+:root {
+  --abyss: oklch(13% 0.03 260);
+  --ink: oklch(96% 0.01 220);
+  --cyan: oklch(85% 0.15 200);
+  --violet: oklch(75% 0.19 300);
+  --pink: oklch(80% 0.16 340);
+  --dim: oklch(70% 0.02 240);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(120% 90% at 50% 110%, oklch(22% 0.06 280 / 0.55), transparent 60%),
+    radial-gradient(100% 80% at 80% -10%, oklch(25% 0.07 220 / 0.4), transparent 55%),
+    var(--abyss);
+  color: var(--ink);
+  font-family: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--cyan) 40%, transparent);
+}
+
+.sea {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  pointer-events: none;
+}
+
+.wordmark {
+  font-size: clamp(2.75rem, 10vw, 7rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  background: linear-gradient(
+    var(--grad-angle),
+    var(--cyan),
+    var(--violet) 55%,
+    var(--pink)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: swim-hue 14s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 28px oklch(75% 0.19 300 / 0.35));
+}
+
+@keyframes swim-hue {
+  to {
+    --grad-angle: 300deg;
+  }
+}
+
+.tagline {
+  margin-top: 1rem;
+  color: var(--dim);
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  letter-spacing: 0.14em;
+}
+
+.tagline b {
+  color: var(--cyan);
+  font-weight: 500;
+}
+
+.foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid oklch(85% 0.15 200 / 0.18);
+  background: oklch(20% 0.04 260 / 0.45);
+  backdrop-filter: blur(12px) saturate(1.4);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+.chip .pulse {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+  animation: beat 2.4s ease-in-out infinite;
+}
+
+@keyframes beat {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+
+.copyright {
+  color: oklch(50% 0.02 240);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordmark,
+  .chip .pulse {
+    animation: none;
+  }
+}
