@@ -14,12 +14,15 @@
   <title>jellytek</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-stage="intro">
+  <!-- keyword scenes sit behind the transparent canvas, so jellies swim over them -->
+  <div class="scenes" aria-hidden="true"><span class="scene-word"></span></div>
+
   <canvas id="sea" class="sea" aria-hidden="true"></canvas>
 
   <main class="overlay">
     <header>
-      <h1 class="wordmark" aria-label="JellyTek">
+      <button class="wordmark" type="button" aria-label="JellyTek — enter">
         <svg class="logo" viewBox="0 0 232.9 132.5" fill="currentColor" role="img" aria-hidden="true">
           <path d="M0,40.5h13.2c0,8.6,4.6,12.8,11.8,12.8c7.4,0,11.8-4.3,11.8-13.8V2.4H50v38.1C50,56.8,39.8,64.6,25,64.6C10.2,64.6,0,56.8,0,40.5z"/>
           <path d="M56.9,40.9c0-17,10.8-23.6,22.9-23.6c11.7,0,21.6,6.1,21.6,23.4c0,1.7-0.1,2.5-0.3,3.5H69.1c0.7,7.6,4.6,10.7,11,10.7c5.9,0,8.4-2.4,9.5-6h11.3c-2.3,10.4-10.3,15.8-20.9,15.8C68.3,64.6,56.9,58.2,56.9,40.9z M89.3,36.7c-0.2-5.3-2.9-9.6-9.9-9.6c-6,0-9.5,3.3-10.3,9.6H89.3z"/>
@@ -31,7 +34,8 @@
           <path d="M186.9,70.3h12.8v34.5l16.7-18.7h14.1l-18.4,19.4l20.8,26.2h-14.1l-14.5-18l-4.6,4.8v13.1h-12.8V70.3z"/>
           <rect x="137.1" y="70.3" width="16.4" height="11.7"/>
         </svg>
-      </h1>
+      </button>
+      <span class="enter-hint">click to enter</span>
       <p class="tagline">soft body.
         <b class="flip"><span class="flip-a">hard tech.</span><span class="flip-b">and hard beaners</span></b>
       </p>

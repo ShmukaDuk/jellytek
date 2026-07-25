@@ -1,3 +1,17 @@
+/* Optos — used for the giant intro keywords. Renders from a locally-installed
+   copy or a self-hosted /fonts/ file; falls back to a heavy system sans. */
+@font-face {
+  font-family: "Optos";
+  src:
+    local("Optos Bold"),
+    local("Optos-Bold"),
+    local("Optos"),
+    url("../fonts/Optos-Bold.woff2") format("woff2");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --abyss: oklch(13% 0.03 260);
   --ink: oklch(96% 0.01 220);
@@ -51,16 +65,115 @@ body {
 }
 
 .wordmark {
+  /* reset button chrome — it's a clickable logo, not a control */
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;           /* clickable even though .overlay ignores pointers */
   /* colour drives the inline SVG's currentColor fill; jelly touches retint it */
   color: var(--logo, var(--ink));
   filter: drop-shadow(0 0 24px var(--logo-glow, oklch(85% 0.15 200 / 0.28)));
-  transition: color 0.6s ease, filter 0.6s ease;
+  transform-origin: center;
+  transition:
+    transform 1.15s cubic-bezier(0.65, 0, 0.25, 1),
+    color 0.6s ease,
+    filter 0.6s ease;
+}
+
+/* the logo is only the interactive "enter" button during the intro */
+body:not([data-stage="intro"]) .wordmark {
+  cursor: default;
 }
 
 .wordmark .logo {
   display: block;
   height: clamp(5.25rem, 18vw, 12rem);   /* 50% larger */
   width: auto;
+}
+
+/* ── intro hint ──────────────────────────────────────────────────────────── */
+.enter-hint {
+  display: block;
+  margin-top: 1.1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--dim);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+body[data-stage="intro"] .enter-hint {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + clamp(4.5rem, 12vw, 8.5rem));   /* just under the centred logo */
+  transform: translateX(-50%);
+  opacity: 0.7;
+  animation: hint-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes hint-breathe {
+  50% { opacity: 0.28; }
+}
+
+/* ── keyword scenes (behind the transparent canvas) ──────────────────────── */
+.scenes {
+  position: fixed;
+  inset: 0;
+  z-index: -1;                    /* sits behind the canvas, above the body bg */
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.scene-word {
+  --word: var(--cyan);
+  font-family: "Optos", system-ui, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14vw;                 /* JS fits each word to ~full width */
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  white-space: nowrap;             /* one line, spans (and clips past) the viewport */
+  text-transform: uppercase;
+  color: #fff;                     /* white type... */
+  opacity: 0;
+  transform: translateY(2rem) scale(0.97);
+  filter: drop-shadow(0 0 34px var(--word));   /* ...with a soft, halved colour backlight */
+  transition: opacity 0.9s ease, transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.scene-word.show {
+  opacity: 0.9;
+  transform: translateY(0) scale(1);
+}
+
+/* ── stage-driven chrome ─────────────────────────────────────────────────── */
+/* tagline blooms centre-screen during the reveal beat, then glides to corner */
+.tagline {
+  opacity: 0;
+  white-space: nowrap;
+  transform-origin: center;
+  transition: opacity 0.8s ease, transform 1.3s cubic-bezier(0.65, 0, 0.25, 1);
+}
+body[data-stage="reveal"] .tagline,
+body[data-stage="home"] .tagline {
+  opacity: 1;
+}
+
+/* footer only on the settled home screen */
+.foot {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+body[data-stage="home"] .foot {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .tagline {

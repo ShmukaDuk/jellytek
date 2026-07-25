@@ -30,6 +30,7 @@ window.addEventListener("pointerdown", (e) => {
   pointer.x = e.clientX;
   pointer.y = e.clientY;
   pointer.activeUntil = performance.now() + 3500;
+  if (stage.mode !== "home") return;   // no poking during the intro sequence
   ripples.push({ x: e.clientX, y: e.clientY, r: 8, alpha: 0.5 });
 
   const j = nearestJelly(e.clientX, e.clientY);
@@ -79,13 +80,22 @@ function makeJelly(name, hue, fx, fy, scale, seed) {
   };
 }
 
+// all three the same size; drawn in order, so johnny (green) paints last and
+// sits in front.
 const jellies = [
-  makeJelly("james",  215, 0.25, 0.38, 1.05, 0.7),
-  makeJelly("tess",   330, 0.55, 0.5,  0.9,  2.9),
-  makeJelly("johnny", 145, 0.78, 0.34, 1.0,  5.3),
+  makeJelly("james",  145, 0.22, 0.40, 1.0, 0.7),   // green
+  makeJelly("tess",   330, 0.5,  0.52, 1.0, 2.9),   // pink
+  makeJelly("johnny", 215, 0.7,  0.36, 1.0, 5.3),   // blue
 ];
 
 const bellRadius = (j) => Math.min(W, H) * 0.105 * j.scale;
+
+// ── stage machine ───────────────────────────────────────────────────────────
+// "intro"  logo centred, waiting for a click
+// "scene"  one jelly spotlit centre-stage over its keyword; the others slide off
+// "home"   the free-swimming aquarium (pointer steering + timed logo visits on)
+const stage = { mode: "intro", focus: null };
+const jellyByName = (n) => jellies.find((j) => j.name === n);
 
 // Middle tentacles run longest, the rim ones stay short — a real bell
 // silhouette instead of uniform noodles.
@@ -108,6 +118,7 @@ window.addEventListener("resize", () => {
   resize();
   buildRopes();
   measureLogo();
+  if (stage.mode === "intro") centerLogo(false);   // keep the hero logo centred
   if (reducedMotion) drawFrame(0.4, 0);
 });
 
@@ -142,7 +153,7 @@ function headTouchesLogo(j) {
 }
 
 function checkLogoTouch() {
-  if (!logoRect) return;
+  if (!logoRect || stage.mode !== "home") return;   // logo only recolours on the home screen
   for (const j of jellies) {
     if (headTouchesLogo(j)) { tintLogo(j); break; }
   }
@@ -395,20 +406,34 @@ function drawBubbles(t) {
 function updateJelly(j, t, dt, chaser) {
   const R = bellRadius(j);
 
-  // schedule the first visit lazily, staggered so the three don't arrive together
+  // scheduled logo visits only run once we've reached the home screen
   if (j.nextVisit === 0) j.nextVisit = t + Math.random() * 10;
-
-  if (logoRect) {
+  if (stage.mode === "home" && logoRect) {
     if (!j.visiting && t >= j.nextVisit) j.visiting = true;   // time to go tap the logo
     if (j.visiting && headTouchesLogo(j)) {
       // head reached it — end the visit and come back in ~10s
       j.visiting = false;
       j.nextVisit = t + 9 + Math.random() * 3;
     }
+  } else {
+    j.visiting = false;
   }
 
   let tx, ty;
-  if (chaser === j) {
+  if (stage.mode === "scene") {
+    if (j === stage.focus) {
+      tx = W / 2; ty = H * 0.52;                  // spotlight: swim to centre stage
+    } else {
+      tx = j.x < W / 2 ? -W * 0.4 : W * 1.4;      // the rest slide out the sides
+      ty = H * 0.55;
+    }
+  } else if (stage.mode === "intro") {
+    // three jellies orbiting slowly around the centred logo, framing it
+    const idx = jellies.indexOf(j);
+    const ang = (idx / jellies.length) * Math.PI * 2 - Math.PI / 2 + t * 0.06;
+    tx = W / 2 + Math.cos(ang) * Math.min(W, H) * 0.34;
+    ty = H * 0.5 + Math.sin(ang) * Math.min(W, H) * 0.2;
+  } else if (chaser === j) {
     tx = pointer.x;
     ty = pointer.y - R * 1.6;         // hover above the cursor, tentacles reach it
   } else if (j.visiting && logoRect) {
@@ -425,6 +450,12 @@ function updateJelly(j, t, dt, chaser) {
   const dist = Math.hypot(dx, dy) || 1;
   j.vx += (dx / dist) * thrust * Math.min(dist, 90);
   j.vy += (dy / dist) * thrust * Math.min(dist, 90);
+
+  // during the scripted scenes, add a steady glide so jellies hit their marks
+  if (stage.mode === "scene") {
+    j.vx += (dx / dist) * Math.min(dist, 400) * 0.02;
+    j.vy += (dy / dist) * Math.min(dist, 400) * 0.02;
+  }
 
   // personal space — gentle mutual repulsion keeps the school untangled
   for (const other of jellies) {
@@ -590,7 +621,7 @@ function drawFrame(t, dt) {
   // the jelly nearest the pointer gets curious; the others keep wandering
   const now = performance.now();
   const chaser =
-    pointer.x !== null && now < pointer.activeUntil
+    stage.mode === "home" && pointer.x !== null && now < pointer.activeUntil
       ? nearestJelly(pointer.x, pointer.y)
       : null;
 
@@ -604,6 +635,117 @@ function drawFrame(t, dt) {
   drawBubbles(t);
 }
 
+// ── intro sequence ──────────────────────────────────────────────────────────
+// Logo opens dead-centre; a click glides it to the corner, then three scenes
+// spotlight each jelly over its keyword before settling into the home aquarium.
+const sceneWord = document.querySelector(".scene-word");
+const SCENES = [
+  { name: "james",  word: "Innovation" },   // blue
+  { name: "tess",   word: "Creativity" },   // pink
+  { name: "johnny", word: "Inspire" },      // green
+];
+const SCENE_HOLD = 3000;   // ms a keyword stays up
+const SCENE_GAP = 650;     // ms of darkness between keywords
+
+// Translate a corner-anchored element so its centre lands at the viewport centre.
+// The transition must be frozen while measuring, or a mid-flight ease-back would
+// report a stale (transformed) box and we'd fail to actually centre it.
+function centerElement(el, scale, animate) {
+  const prev = el.style.transition;
+  el.style.transition = "none";
+  el.style.transform = "";
+  void el.offsetWidth;                             // commit the untransformed layout
+  const r = el.getBoundingClientRect();            // now the true resting box
+  const dx = W / 2 - (r.left + r.width / 2);
+  const dy = H / 2 - (r.top + r.height / 2);
+  if (animate) {                                   // let the recentre ease in
+    el.style.transition = prev;
+    void el.offsetWidth;
+  }
+  el.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+  if (!animate) {
+    void el.offsetWidth;
+    el.style.transition = prev;                    // restore easing for the glide back
+  }
+}
+
+const tagline = document.querySelector(".tagline");
+
+function centerLogo(animate) {
+  if (!wordmark) return;
+  centerElement(wordmark, 1.18, animate);
+  measureLogo();
+}
+
+// Scale a keyword to ~50% of the viewport width (half the old edge-to-edge
+// size), capped so it never overruns the height.
+function fitWord(el) {
+  el.style.fontSize = "200px";
+  const w = el.getBoundingClientRect().width || 1;
+  let size = 200 * (W * 0.5 / w);
+  size = Math.min(size, H * 0.24);
+  el.style.fontSize = `${Math.round(size)}px`;
+}
+
+let started = false;
+
+function startSequence() {
+  if (started || stage.mode !== "intro") return;
+  started = true;
+  wordmark.style.transform = "";                  // glide back to the corner
+  document.body.dataset.stage = "leaving";
+  setTimeout(runScene(0), 1150);                  // once it's parked, roll the scenes
+}
+
+function runScene(i) {
+  return () => {
+    if (i >= SCENES.length) return endSequence();
+    const sc = SCENES[i];
+    const j = jellyByName(sc.name);
+    stage.mode = "scene";
+    stage.focus = j;
+    document.body.dataset.stage = "scene";
+
+    sceneWord.textContent = sc.word;
+    sceneWord.style.setProperty("--word", `hsla(${j.hue}, 85%, 65%, 0.5)`);   // halved backlight
+    fitWord(sceneWord);            // scale the type to span the viewport, Noomo-style
+    sceneWord.classList.remove("show");
+    void sceneWord.offsetWidth;
+    sceneWord.classList.add("show");
+
+    setTimeout(() => {
+      sceneWord.classList.remove("show");
+      setTimeout(runScene(i + 1), SCENE_GAP);
+    }, SCENE_HOLD);
+  };
+}
+
+function endSequence() {
+  stage.mode = "home";                 // jellies free-swim behind the reveal
+  stage.focus = null;
+  if (!tagline) { document.body.dataset.stage = "home"; measureLogo(); return; }
+  // final beat: "soft body. hard tech." blooms centre-screen, then tucks to corner
+  document.body.dataset.stage = "reveal";
+  centerElement(tagline, 3, false);
+  measureLogo();
+  setTimeout(() => {
+    tagline.style.transform = "";      // glide down to its resting corner
+    document.body.dataset.stage = "home";
+    measureLogo();
+  }, 1700);
+}
+
+if (reducedMotion) {
+  // no motion: skip straight to the settled home screen, one static frame
+  stage.mode = "home";
+  document.body.dataset.stage = "home";
+  drawFrame(0.4, 0);
+} else {
+  wordmark.addEventListener("click", startSequence);
+  wordmark.addEventListener("transitionend", measureLogo);
+  centerLogo(false);   // open centred, before first paint (no corner flash)
+}
+
 // ── loop ───────────────────────────────────────────────────────────────────
 let last = performance.now();
 
@@ -614,8 +756,4 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
-if (reducedMotion) {
-  drawFrame(0.4, 0);                  // a single serene frame, no animation
-} else {
-  requestAnimationFrame(loop);
-}
+if (!reducedMotion) requestAnimationFrame(loop);
