@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'" />
+  <meta name="theme-color" content="#f9fafc" />
+  <meta name="description" content="The JellyTek TCG Engine: real-time recognition of trading cards, running entirely on-device." />
+  <meta property="og:title" content="TCG Engine — JellyTek" />
+  <meta property="og:description" content="The JellyTek TCG Engine: real-time recognition of trading cards, running entirely on-device." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪼</text></svg>" />
+  <title>TCG Engine — JellyTek</title>
+  <link rel="preload" href="/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/FragmentMono-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <script src="/js/boot.js"></script>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body data-page="engine">
+
+<a class="skip" href="#apps">Skip to content</a>
+
+<div class="progress" aria-hidden="true"><span class="progress__bar"></span></div>
+
+<!-- the page-wide column rulers: the skeleton everything is squared to -->
+<div class="rulers" aria-hidden="true">
+  <span class="rulers__line rulers__line--1"></span>
+  <span class="rulers__line rulers__line--2"></span>
+  <span class="rulers__line rulers__line--3"></span>
+  <span class="rulers__line rulers__line--4"></span>
+</div>
+
+<header class="nav" id="nav">
+  <a class="nav__brand" href="/" aria-label="JellyTek — home">
+    <svg class="nav__logo" viewBox="0 0 304.7 323" fill="currentColor" role="img" aria-hidden="true">
+      <path d="M39,108.9c-4.9,11.1-8,22.1-7.9,34.2,0,8.6,5.8,15.7,14.5,16l17.4.5c7,.2,10.7,7.4,10.3,13.7s-5.5,12.3-12.7,12.3h-18.8c-17.3-2-44.5-12.5-36.8-52C25.6,27.8,108.9,11,152.4,11c66.5,0,129.7,35.8,145.7,122.6,7.5,40.7-27.5,50.2-38.7,51.9h-19.5c-7.2.1-12-5.7-12.4-12.3-.4-6.3,3.7-13.5,10.8-13.6l16.7-.4c8.1-.2,13.8-6.7,14.2-14.7.5-8.7-1.3-21.9-3.7-30.3-3.2-11.1-30.1-76.6-112.4-76.6S46.7,91.5,39,108.9Z"/>
+      <path d="M162.3,285.5c0,8.2-5.3,13.3-12.1,13.3s-12.7-7.2-12.7-13.9l-.3-136.5c0-7.6-5.3-12.9-12.8-12.9h-39.9c-7.9,0-13.9-5.7-13.9-13.1s5.8-13.3,14-13.3h131.6c7.8,0,13.5,5.1,14,12.5.4,6.6-4.7,13.7-12.3,13.7h-42.4c-7.7.2-12.5,5.4-12.6,13.3l-.5,136.9Z"/>
+      <path d="M21.9,309.4c-7.5,0-11.5-7.3-11.5-13.5,0-6.5,4.6-13,11.7-13.1l18.9-.3c11.7-.1,22.3-4.4,31.1-12.1,12-10.6,17.7-25.2,17.9-41.2l.6-57.7c0-7.7,6.2-12.4,13-12.3s12.3,5.5,12.3,13.1v59.3c.1,39.4-29,75.2-70.1,77.7h-23.8Z"/>
+      <path d="M279.2,309.4c7.5,0,11.5-7.3,11.5-13.5,0-6.5-4.6-13-11.7-13.1l-18.9-.3c-11.7-.1-22.3-4.4-31.1-12.1-12-10.6-17.7-25.2-17.9-41.2l-.6-57.7c0-7.7-6.2-12.4-13-12.3s-12.3,5.5-12.3,13.1v59.3c-.1,39.4,29,75.2,70.1,77.7h23.8Z"/>
+    </svg>
+  </a>
+
+  <nav class="nav__links" aria-label="Primary">
+    <a class="nav__link" href="/#company">Company</a>
+    <a class="nav__link" href="/#expertise">Expertise</a>
+
+    <span class="nav__products" data-open="false">
+      <button class="nav__link is-active" type="button" aria-expanded="false" aria-controls="navProducts">Products</button>
+      <span class="nav__menu" id="navProducts" hidden>
+        <a href="/products/tcg-engine/">
+          <span class="num">01</span>
+          <b>TCG Engine</b>
+          <span class="desc">recognition · extraction · classification</span>
+        </a>
+        <a href="/products/price-monitoring/">
+          <span class="num">02</span>
+          <b>Price History &amp; Monitoring</b>
+          <span class="desc">market data · alerts · analytics</span>
+        </a>
+      </span>
+    </span>
+
+    <a class="nav__link" href="/#team">Team</a>
+  </nav>
+
+  <a class="btn btn--sm nav__cta" href="#demo">
+    <span class="t">Request a demo</span>
+    <svg class="btn__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg>
+  </a>
+
+  <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="navSheet" aria-label="Open menu">
+    <span></span><span></span>
+  </button>
+</header>
+
+<div class="sheet" id="navSheet" hidden>
+  <a class="sheet__link" href="/#company">Company</a>
+  <a class="sheet__link" href="/#expertise">Expertise</a>
+  <a class="sheet__link" href="/products/tcg-engine/">01 · TCG Engine</a>
+  <a class="sheet__link" href="/products/price-monitoring/">02 · Price History &amp; Monitoring</a>
+  <a class="sheet__link" href="/#team">Team</a>
+  <a class="sheet__link sheet__link--cta" href="#demo">Request a demo</a>
+</div>
+
+<main id="top">
+
+  <!-- ═══ HERO ═══════════════════════════════════════════════════════════ -->
+  <section class="hero hero--product" aria-labelledby="heroTitle">
+    <div class="container">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/">JellyTek</a>
+        <span class="crumb__sep">/</span>
+        <a href="/#products">Products</a>
+        <span class="crumb__sep">/</span>
+        <span class="crumb__here">TCG Engine</span>
+      </nav>
+      <div class="hero__layout">
+        <div class="hero__copy">
+          <p class="hero__eyebrow label"><span class="mask"><span>Product 01 · Core technology</span></span></p>
+          <h1 class="hero__title" id="heroTitle"><span class="mask"><span>TCG Engine</span></span></h1>
+          <div class="hero__body">
+            <p class="hero__lede">
+              Point a camera at a table of cards. The engine identifies every one
+              of them, frame after frame, entirely on the device in front of you.
+            </p>
+            <div class="hero__actions">
+              <a class="btn magnet" href="#demo"><span class="t">Book a demo</span><svg class="btn__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></a>
+              <a class="btn btn--ghost" href="#apps"><span class="t">What runs on it</span></a>
+            </div>
+          </div>
+        </div>
+        <div class="hero__fig figslot figslot--bare" data-img="engine.hero"><svg class="fig" viewBox="0 0 640 400" role="img" aria-label="Schematic: cards on a desk, each enclosed in a tracking box with an identifier">
+              <rect width="640" height="400" class="fig__ground"/>
+              <g class="fig__grid"><path d="M0 100h640M0 200h640M0 300h640M160 0v400M320 0v400M480 0v400"/></g>
+              <g class="fig__mute"><rect x="360" y="36" width="248" height="96" rx="4"/><path d="M372 52h224M372 70h224M372 88h224M372 106h224"/></g>
+              <g class="fig__card" transform="rotate(-14 120 250)"><rect x="62" y="186" width="116" height="162" rx="4"/><path d="M74 200h92v72H74z"/><path d="M74 286h92M74 300h70M74 314h82"/></g>
+              <g class="fig__card" transform="rotate(8 300 268)"><rect x="244" y="200" width="116" height="162" rx="4"/><path d="M256 214h92v72h-92z"/><path d="M256 300h92M256 314h70M256 328h82"/></g>
+              <g class="fig__card" transform="rotate(-4 452 262)"><rect x="396" y="196" width="116" height="162" rx="4"/><path d="M408 210h92v72h-92z"/><path d="M408 296h92M408 310h70M408 324h82"/></g>
+              <g class="fig__box"><rect x="52" y="176" width="140" height="186"/><rect x="234" y="190" width="140" height="186"/><rect x="386" y="186" width="140" height="186"/></g>
+              <g class="fig__tag"><rect x="52" y="158" width="60" height="18"/><text x="58" y="171">id 07</text><rect x="234" y="172" width="60" height="18"/><text x="240" y="185">id 12</text><rect x="386" y="168" width="60" height="18"/><text x="392" y="181">id 03</text></g>
+              <g class="fig__cross"><path d="M122 269h-14M122 269h14M122 269v-14M122 269v14"/><path d="M304 283h-14M304 283h14M304 283v-14M304 283v14"/><path d="M456 279h-14M456 279h14M456 279v-14M456 279v14"/></g>
+            </svg></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 01 · BUILT ON IT ═══════════════════════════════════════════════ -->
+  <section class="section section--alt" id="apps" aria-labelledby="appsTitle">
+    <div class="container">
+      <span class="section__index label">01 — Built on it</span>
+
+      <div class="section__head grid12">
+        <h2 class="section__title reveal" id="appsTitle">Four apps,<br />one set of weights.</h2>
+        <p class="section__lede reveal">
+          A new surface is a UI problem, not a model problem.
+        </p>
+      </div>
+
+      <div class="bento reveal">
+
+        <!-- 01 collectathon -->
+        <article class="tile tile--a spot">
+          <span class="card__dot" aria-hidden="true"></span>
+          <span class="card__index">01</span>
+          <h3 class="card__title">Collectathon game</h3>
+          <p class="tile__text">
+            Snap the cards in front of you to catch them. The camera is the
+            controller — the engine scores every frame and the binder fills up
+            as you play.
+          </p>
+          <!-- phone stand-in: viewfinder + reticle + HUD -->
+          <div class="phone figslot" data-img="apps.0" aria-hidden="true">
+            <div class="phone__screen">
+              <div class="phone__hud">
+                <span class="phone__pill">173</span>
+                <span class="phone__pill phone__pill--dim">1×</span>
+              </div>
+              <div class="phone__view">
+                <svg viewBox="0 0 200 150" class="phone__svg">
+                  <g class="fig__card fig__card--mini">
+                    <rect x="18" y="34" width="46" height="64" rx="3" transform="rotate(-12 41 66)"/>
+                    <rect x="76" y="46" width="46" height="64" rx="3" transform="rotate(5 99 78)"/>
+                    <rect x="132" y="30" width="46" height="64" rx="3" transform="rotate(-6 155 62)"/>
+                  </g>
+                  <circle class="phone__reticle" cx="99" cy="78" r="22"/>
+                  <path class="phone__lock" d="M70 52h-8v-8M128 52h8v-8M70 104h-8v8M128 104h8v8"/>
+                </svg>
+              </div>
+              <div class="phone__tray">
+                <span>Last snap</span><span>Binder</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="card__meta">op-tcg · op_snap.apk</p>
+        </article>
+
+        <!-- 02 price check -->
+        <article class="tile tile--b spot">
+          <span class="card__dot" aria-hidden="true"></span>
+          <span class="card__index">02</span>
+          <h3 class="card__title">Live price check</h3>
+          <p class="tile__text">Fan them out on the desk and every card wears its market price.</p>
+          <p class="card__meta">pokémon · riftbound · gundam · op</p>
+
+          <div class="pricefig figslot" data-img="apps.1" aria-hidden="true">
+            <svg viewBox="0 0 300 150">
+              <g transform="rotate(-10 47 84)">
+                <rect class="fig__card--mini" x="20" y="46" width="54" height="76" rx="3"/>
+                <rect class="fig__box-r" x="18" y="44" width="58" height="80"/>
+              </g>
+              <g transform="rotate(4 123 94)">
+                <rect class="fig__card--mini" x="96" y="56" width="54" height="76" rx="3"/>
+                <rect class="fig__box-r" x="94" y="54" width="58" height="80"/>
+              </g>
+              <g transform="rotate(-5 203 78)">
+                <rect class="fig__card--mini" x="176" y="40" width="54" height="76" rx="3"/>
+                <rect class="fig__box-r" x="174" y="38" width="58" height="80"/>
+              </g>
+              <g class="pricefig__tag">
+                <rect x="16" y="20" width="52" height="17"/><text x="22" y="33">A$0.20</text>
+                <rect x="92" y="32" width="52" height="17"/><text x="98" y="45">A$0.17</text>
+                <rect x="172" y="14" width="52" height="17"/><text x="178" y="27">A$0.20</text>
+              </g>
+            </svg>
+          </div>
+        </article>
+
+        <!-- 03 streamer overlay -->
+        <article class="tile tile--c spot">
+          <span class="card__dot" aria-hidden="true"></span>
+          <span class="card__index">03</span>
+          <h3 class="card__title">Streamer overlay</h3>
+          <p class="tile__text">Pack openings, called live. Chase cards light up the second they hit the desk.</p>
+          <p class="card__meta">twitch</p>
+
+          <div class="overlayfig figslot" data-img="apps.2" aria-hidden="true">
+            <svg viewBox="0 0 300 150">
+              <rect class="overlayfig__frame" x="8" y="8" width="284" height="134" rx="3"/>
+              <text class="fig__label fig__label--on-dark" x="20" y="32">TOP CHASES EB02</text>
+              <g class="overlayfig__row">
+                <rect x="20" y="42" width="30" height="42" rx="2"/>
+                <rect x="58" y="42" width="30" height="42" rx="2"/>
+                <rect x="96" y="42" width="30" height="42" rx="2"/>
+                <rect class="is-hit" x="134" y="42" width="30" height="42" rx="2"/>
+                <rect x="172" y="42" width="30" height="42" rx="2"/>
+                <rect x="210" y="42" width="30" height="42" rx="2"/>
+              </g>
+              <text class="overlayfig__caption" x="20" y="106">LEADER RUN · 3 STRIKES</text>
+              <g class="overlayfig__meter">
+                <rect x="20" y="116" width="260" height="4" rx="2"/>
+                <rect class="is-fill" x="20" y="116" width="96" height="4" rx="2"/>
+              </g>
+            </svg>
+          </div>
+        </article>
+
+        <!-- 04 community app -->
+        <article class="tile tile--d spot">
+          <span class="card__dot" aria-hidden="true"></span>
+          <span class="card__index">04</span>
+          <div class="tile__split">
+            <div>
+              <h3 class="card__title">Community TCG app</h3>
+              <p class="tile__text">
+                Snap your cards, watch the collection grow, and find the people
+                who have the one you're missing. Collection tracking and trading,
+                built on the same recogniser.
+              </p>
+              <p class="card__meta">collection + trading · cards_and_friends.apk</p>
+            </div>
+
+            <div class="stackfig figslot" data-img="apps.3" aria-hidden="true">
+              <svg viewBox="0 0 340 160">
+                <g class="stackfig__cards">
+                  <rect x="14"  y="40" width="58" height="82" rx="4" transform="rotate(-8 43 81)"/>
+                  <rect x="66"  y="34" width="58" height="82" rx="4" transform="rotate(-3 95 75)"/>
+                  <rect x="118" y="32" width="58" height="82" rx="4"/>
+                  <rect x="170" y="34" width="58" height="82" rx="4" transform="rotate(3 199 75)"/>
+                  <rect x="222" y="40" width="58" height="82" rx="4" transform="rotate(8 251 81)"/>
+                </g>
+                <g class="stackfig__links">
+                  <path d="M43 128c26 18 52 18 78 0M121 128c26 18 52 18 78 0M199 128c26 18 40 14 52 2"/>
+                  <circle cx="43" cy="128" r="3.5"/><circle cx="121" cy="128" r="3.5"/>
+                  <circle cx="199" cy="128" r="3.5"/><circle cx="251" cy="130" r="3.5"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </article>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ 02 · EDGE ══════════════════════════════════════════════════════ -->
+  <section class="section" id="edge" aria-labelledby="edgeTitle">
+    <div class="container">
+      <span class="section__index label">02 — Edge</span>
+
+      <div class="section__head grid12">
+        <h2 class="section__title reveal" id="edgeTitle">Edge-native<br />from the ground up.</h2>
+        <p class="section__lede reveal">
+          Designed for NPU acceleration on mobile devices and low-cost SoCs.
+        </p>
+      </div>
+
+      <div class="stats stagger">
+        <div class="stat">
+          <span class="stat__value" aria-hidden="true">∞</span>
+          <span class="sr-only">Unlimited</span>
+          <span class="stat__label label">Platform targets</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value" data-count="1">1</span>
+          <span class="stat__label label">Mono-repo</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value stat__value--word">NPU</span>
+          <span class="stat__label label">Accelerated</span>
+        </div>
+      </div>
+
+      <div class="edge grid12">
+        <div class="edge__copy reveal">
+          <h3 class="edge__title">Cross-platform mono-repo</h3>
+          <p>
+            Linux · Android · iOS · Windows · bare metal — one codebase, one set
+            of weights, no cloud round-trip. The model that ships on a phone is
+            the model that ships on the board.
+          </p>
+          <ul class="speclist stagger">
+            <li><span>Runtime</span><span>on-device, NPU accelerated</span></li>
+            <li><span>Reference SoC</span><span>TI Sitara AM62A class</span></li>
+            <li><span>Network</span><span>none required at inference</span></li>
+            <li><span>Weights</span><span>one set, every target</span></li>
+          </ul>
+        </div>
+
+        <!-- board + platform ring stand-in -->
+        <div class="edge__fig reveal figslot" data-img="edge.figure">
+          <svg class="fig" viewBox="0 0 520 420" role="img" aria-label="Schematic: a single-board computer at centre, connected outward to Linux, Android, iOS, Windows and bare-metal targets">
+            <g class="fig__orbit">
+              <circle cx="260" cy="210" r="186"/><circle cx="260" cy="210" r="140"/>
+            </g>
+
+            <!-- the board -->
+            <g class="board">
+              <rect class="board__pcb" x="156" y="132" width="208" height="156" rx="4"/>
+              <rect class="board__soc" x="228" y="182" width="64" height="58" rx="3"/>
+              <text class="board__soc-text" x="260" y="216">SoC</text>
+              <g class="board__traces">
+                <path d="M228 196h-40M228 212h-40M228 228h-40M292 196h40M292 212h40M292 228h40"/>
+                <path d="M244 182v-28M276 182v-28M244 240v28M276 240v28"/>
+              </g>
+              <g class="board__pins">
+                <path d="M168 146h28M168 154h28M168 162h28M324 146h28M324 154h28M324 162h28"/>
+              </g>
+              <text class="fig__label" x="156" y="308">single board · low power</text>
+            </g>
+
+            <!-- targets on the ring -->
+            <g class="target"><circle cx="260" cy="24"  r="27"/><text x="260" y="29">Linux</text></g>
+            <g class="target"><circle cx="446" cy="128" r="27"/><text x="446" y="133">Android</text></g>
+            <g class="target"><circle cx="446" cy="292" r="27"/><text x="446" y="297">iOS</text></g>
+            <g class="target"><circle cx="260" cy="396" r="27"/><text x="260" y="401">Windows</text></g>
+            <g class="target"><circle cx="74"  cy="292" r="27"/><text x="74"  y="297">bare</text></g>
+            <g class="target"><circle cx="74"  cy="128" r="27"/><text x="74"  y="133">NPU</text></g>
+
+            <g class="fig__spokes">
+              <path d="M260 132V51M330 160l96-16M330 262l96 16M260 288v82M190 262l-92 16M190 160l-92-16"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section section--ink" id="demo" aria-labelledby="demoTitle">
+    <div class="container">
+      <span class="section__index label">03 — Demo</span>
+
+      <div class="demo__head grid12">
+        <h2 class="section__title reveal" id="demoTitle">See it on<br />your own cards.</h2>
+        <div class="demo__contact reveal">
+          <a class="demo__mail link" href="mailto:marketing@jellytek.net">marketing@jellytek.net</a>
+          <a class="demo__tel link" href="tel:+61439505062">0439 505 062</a>
+          <p>The short version is on this page. We walk through the rest — live, on real cards — in a demo.</p>
+        </div>
+      </div>
+
+      <p class="demo__note label">Android builds, ready to sideload — request access below</p>
+
+      <div class="dls stagger">
+        <a class="dl" href="mailto:marketing@jellytek.net?subject=Evaluation%20build%3A%20baroque_worths_demo.apk">
+          <span class="dl__badge">APK</span>
+          <span class="dl__body">
+            <span class="dl__name">baroque_worths_demo.apk</span>
+            <span class="dl__note">price check demo</span>
+          </span>
+          <svg class="btn__arrow" width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </a>
+        <a class="dl" href="mailto:marketing@jellytek.net?subject=Evaluation%20build%3A%20cards_and_friends.apk">
+          <span class="dl__badge">APK</span>
+          <span class="dl__body">
+            <span class="dl__name">cards_and_friends.apk</span>
+            <span class="dl__note">community app</span>
+          </span>
+          <svg class="btn__arrow" width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </a>
+        <a class="dl" href="mailto:marketing@jellytek.net?subject=Evaluation%20build%3A%20op_snap.apk">
+          <span class="dl__badge">APK</span>
+          <span class="dl__body">
+            <span class="dl__name">op_snap.apk</span>
+            <span class="dl__note">collectathon game</span>
+          </span>
+          <svg class="btn__arrow" width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="container foot__inner">
+    <div class="foot__brand">
+      <svg class="foot__logo" viewBox="0 0 232.9 132.5" fill="currentColor" role="img" aria-label="JellyTek">
+              <path d="M0,40.5h13.2c0,8.6,4.6,12.8,11.8,12.8c7.4,0,11.8-4.3,11.8-13.8V2.4H50v38.1C50,56.8,39.8,64.6,25,64.6C10.2,64.6,0,56.8,0,40.5z"/>
+              <path d="M56.9,40.9c0-17,10.8-23.6,22.9-23.6c11.7,0,21.6,6.1,21.6,23.4c0,1.7-0.1,2.5-0.3,3.5H69.1c0.7,7.6,4.6,10.7,11,10.7c5.9,0,8.4-2.4,9.5-6h11.3c-2.3,10.4-10.3,15.8-20.9,15.8C68.3,64.6,56.9,58.2,56.9,40.9z M89.3,36.7c-0.2-5.3-2.9-9.6-9.9-9.6c-6,0-9.5,3.3-10.3,9.6H89.3z"/>
+              <path d="M108.3,1.2l12.8,0l0,61.3l-12.8,0L108.3,1.2z"/>
+              <path d="M130.2,1.2l12.8,0l0,61.3l-12.8,0L130.2,1.2z"/>
+              <path d="M165.3,59.6l-16.7-41.4h13.1l10.6,29.4l10.9-29.4h13.1l-18.7,45.9C172,78.2,167.8,82,153.2,82V70.3C162.2,70.3,167.3,64.6,165.3,59.6z"/>
+              <path d="M109,82h-12c-3.2,0-5.8-2.6-5.8-5.8v0c0-3.2,2.6-5.8,5.8-5.8H140V82h-17.8v49.7H109V82z"/>
+              <path d="M135.5,108.8c0-17,10.8-23.6,22.9-23.6c11.7,0,21.6,6.1,21.6,23.4c0,1.7-0.1,2.5-0.3,3.5h-32.1c0.7,7.6,4.6,10.7,11,10.7c5.9,0,8.4-2.4,9.5-6h11.3c-2.3,10.4-10.3,15.8-20.9,15.8C146.9,132.5,135.5,126.1,135.5,108.8z M167.9,104.6c-0.2-5.3-2.9-9.6-9.9-9.6c-6,0-9.5,3.3-10.3,9.6H167.9z"/>
+              <path d="M186.9,70.3h12.8v34.5l16.7-18.7h14.1l-18.4,19.4l20.8,26.2h-14.1l-14.5-18l-4.6,4.8v13.1h-12.8V70.3z"/>
+              <rect x="137.1" y="70.3" width="16.4" height="11.7"/>
+            </svg>
+      <p class="foot__tag">soft body. hard tech.</p>
+    </div>
+
+    <nav class="foot__nav" aria-label="Footer">
+      <a class="nav__link" href="/products/tcg-engine/">TCG Engine</a>
+      <a class="nav__link" href="/products/price-monitoring/">Price monitoring</a>
+      <a class="nav__link" href="/#team">Team</a>
+      <a class="nav__link" href="mailto:marketing@jellytek.net">Contact</a>
+    </nav>
+
+    <div class="foot__meta">
+      <span class="tag chip--live"><span class="pulse"></span><span class="t">online — drifting in the current</span></span>
+      <span class="foot__legal">
+        <span class="t">© 2026 jellytek.net</span>
+        <a class="link commit" id="commit" href="https://github.com/ShmukaDuk/jellytek/commits/main"
+           target="_blank" rel="noopener">…</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<!-- content layer: content.js is the editable record, hydrate applies this
+     page's slice of it. Both are synchronous so the DOM is final before the
+     deferred scripts (which measure layout) run. -->
+<script src="/js/schema.js"></script>
+<script src="/content.js"></script>
+<script src="/js/hydrate.js"></script>
+
+<script src="/js/site.js" defer></script>
+<script src="/js/version.js" defer></script>
+<script src="/js/edit.js" defer></script>
+</body>
+</html>

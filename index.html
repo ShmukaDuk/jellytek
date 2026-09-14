@@ -4,54 +4,395 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'" />
-  <meta name="theme-color" content="#030712" />
-  <meta name="description" content="jellytek — soft body. hard tech." />
-  <meta property="og:title" content="jellytek" />
-  <meta property="og:description" content="soft body. hard tech." />
-  <meta property="og:url" content="https://jellytek.net" />
+        content="default-src 'self'; img-src 'self' data:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'" />
+  <meta name="theme-color" content="#f9fafc" />
+  <meta name="description" content="JellyTek builds on-device card recognition and market-data tooling for trading card games." />
+  <meta property="og:title" content="JellyTek — edge-native computer vision for trading cards" />
+  <meta property="og:description" content="JellyTek builds on-device card recognition and market-data tooling for trading card games." />
+  <meta property="og:type" content="website" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪼</text></svg>" />
-  <title>jellytek</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>JellyTek — edge-native computer vision for trading cards</title>
+  <link rel="preload" href="/fonts/InterTight-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/FragmentMono-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <script src="/js/boot.js"></script>
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
-<body data-stage="intro">
-  <!-- keyword scenes sit behind the transparent canvas, so jellies swim over them -->
-  <div class="scenes" aria-hidden="true"><span class="scene-word"></span></div>
+<body data-page="home">
 
-  <canvas id="sea" class="sea" aria-hidden="true"></canvas>
+<a class="skip" href="#company">Skip to content</a>
 
-  <main class="overlay">
-    <header>
-      <button class="wordmark" type="button" aria-label="JellyTek — enter">
-        <svg class="logo" viewBox="0 0 232.9 132.5" fill="currentColor" role="img" aria-hidden="true">
-          <path d="M0,40.5h13.2c0,8.6,4.6,12.8,11.8,12.8c7.4,0,11.8-4.3,11.8-13.8V2.4H50v38.1C50,56.8,39.8,64.6,25,64.6C10.2,64.6,0,56.8,0,40.5z"/>
-          <path d="M56.9,40.9c0-17,10.8-23.6,22.9-23.6c11.7,0,21.6,6.1,21.6,23.4c0,1.7-0.1,2.5-0.3,3.5H69.1c0.7,7.6,4.6,10.7,11,10.7c5.9,0,8.4-2.4,9.5-6h11.3c-2.3,10.4-10.3,15.8-20.9,15.8C68.3,64.6,56.9,58.2,56.9,40.9z M89.3,36.7c-0.2-5.3-2.9-9.6-9.9-9.6c-6,0-9.5,3.3-10.3,9.6H89.3z"/>
-          <path d="M108.3,1.2l12.8,0l0,61.3l-12.8,0L108.3,1.2z"/>
-          <path d="M130.2,1.2l12.8,0l0,61.3l-12.8,0L130.2,1.2z"/>
-          <path d="M165.3,59.6l-16.7-41.4h13.1l10.6,29.4l10.9-29.4h13.1l-18.7,45.9C172,78.2,167.8,82,153.2,82V70.3C162.2,70.3,167.3,64.6,165.3,59.6z"/>
-          <path d="M109,82h-12c-3.2,0-5.8-2.6-5.8-5.8v0c0-3.2,2.6-5.8,5.8-5.8H140V82h-17.8v49.7H109V82z"/>
-          <path d="M135.5,108.8c0-17,10.8-23.6,22.9-23.6c11.7,0,21.6,6.1,21.6,23.4c0,1.7-0.1,2.5-0.3,3.5h-32.1c0.7,7.6,4.6,10.7,11,10.7c5.9,0,8.4-2.4,9.5-6h11.3c-2.3,10.4-10.3,15.8-20.9,15.8C146.9,132.5,135.5,126.1,135.5,108.8z M167.9,104.6c-0.2-5.3-2.9-9.6-9.9-9.6c-6,0-9.5,3.3-10.3,9.6H167.9z"/>
-          <path d="M186.9,70.3h12.8v34.5l16.7-18.7h14.1l-18.4,19.4l20.8,26.2h-14.1l-14.5-18l-4.6,4.8v13.1h-12.8V70.3z"/>
-          <rect x="137.1" y="70.3" width="16.4" height="11.7"/>
-        </svg>
-      </button>
-      <span class="enter-hint">click to enter</span>
-      <p class="tagline">soft body.
-        <b class="flip"><span class="flip-a">hard tech.</span><span class="flip-b">and hard beaners</span></b>
-      </p>
-    </header>
+<div class="progress" aria-hidden="true"><span class="progress__bar"></span></div>
 
-    <footer class="foot">
-      <span class="chip"><span class="pulse"></span>online — drifting in the current</span>
-      <span class="meta">
-        <span class="copyright">© 2026 jellytek.net</span>
-        <a class="commit" id="commit" href="https://github.com/ShmukaDuk/jellytek/commits/main"
+<!-- the page-wide column rulers: the skeleton everything is squared to -->
+<div class="rulers" aria-hidden="true">
+  <span class="rulers__line rulers__line--1"></span>
+  <span class="rulers__line rulers__line--2"></span>
+  <span class="rulers__line rulers__line--3"></span>
+  <span class="rulers__line rulers__line--4"></span>
+</div>
+
+<!-- the school swims behind the whole page -->
+<canvas id="sea" class="sea" aria-hidden="true"></canvas>
+
+<header class="nav" id="nav">
+  <a class="nav__brand" href="/" aria-label="JellyTek — home">
+    <svg class="nav__logo" viewBox="0 0 304.7 323" fill="currentColor" role="img" aria-hidden="true">
+      <path d="M39,108.9c-4.9,11.1-8,22.1-7.9,34.2,0,8.6,5.8,15.7,14.5,16l17.4.5c7,.2,10.7,7.4,10.3,13.7s-5.5,12.3-12.7,12.3h-18.8c-17.3-2-44.5-12.5-36.8-52C25.6,27.8,108.9,11,152.4,11c66.5,0,129.7,35.8,145.7,122.6,7.5,40.7-27.5,50.2-38.7,51.9h-19.5c-7.2.1-12-5.7-12.4-12.3-.4-6.3,3.7-13.5,10.8-13.6l16.7-.4c8.1-.2,13.8-6.7,14.2-14.7.5-8.7-1.3-21.9-3.7-30.3-3.2-11.1-30.1-76.6-112.4-76.6S46.7,91.5,39,108.9Z"/>
+      <path d="M162.3,285.5c0,8.2-5.3,13.3-12.1,13.3s-12.7-7.2-12.7-13.9l-.3-136.5c0-7.6-5.3-12.9-12.8-12.9h-39.9c-7.9,0-13.9-5.7-13.9-13.1s5.8-13.3,14-13.3h131.6c7.8,0,13.5,5.1,14,12.5.4,6.6-4.7,13.7-12.3,13.7h-42.4c-7.7.2-12.5,5.4-12.6,13.3l-.5,136.9Z"/>
+      <path d="M21.9,309.4c-7.5,0-11.5-7.3-11.5-13.5,0-6.5,4.6-13,11.7-13.1l18.9-.3c11.7-.1,22.3-4.4,31.1-12.1,12-10.6,17.7-25.2,17.9-41.2l.6-57.7c0-7.7,6.2-12.4,13-12.3s12.3,5.5,12.3,13.1v59.3c.1,39.4-29,75.2-70.1,77.7h-23.8Z"/>
+      <path d="M279.2,309.4c7.5,0,11.5-7.3,11.5-13.5,0-6.5-4.6-13-11.7-13.1l-18.9-.3c-11.7-.1-22.3-4.4-31.1-12.1-12-10.6-17.7-25.2-17.9-41.2l-.6-57.7c0-7.7-6.2-12.4-13-12.3s-12.3,5.5-12.3,13.1v59.3c-.1,39.4,29,75.2,70.1,77.7h23.8Z"/>
+    </svg>
+  </a>
+
+  <nav class="nav__links" aria-label="Primary">
+    <a class="nav__link" href="/#company">Company</a>
+    <a class="nav__link" href="/#expertise">Expertise</a>
+
+    <span class="nav__products" data-open="false">
+      <button class="nav__link" type="button" aria-expanded="false" aria-controls="navProducts">Products</button>
+      <span class="nav__menu" id="navProducts" hidden>
+        <a href="/products/tcg-engine/">
+          <span class="num">01</span>
+          <b>TCG Engine</b>
+          <span class="desc">recognition · extraction · classification</span>
+        </a>
+        <a href="/products/price-monitoring/">
+          <span class="num">02</span>
+          <b>Price History &amp; Monitoring</b>
+          <span class="desc">market data · alerts · analytics</span>
+        </a>
+      </span>
+    </span>
+
+    <a class="nav__link" href="/#team">Team</a>
+  </nav>
+
+  <a class="btn btn--sm nav__cta" href="#demo">
+    <span class="t">Request a demo</span>
+    <svg class="btn__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg>
+  </a>
+
+  <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="navSheet" aria-label="Open menu">
+    <span></span><span></span>
+  </button>
+</header>
+
+<div class="sheet" id="navSheet" hidden>
+  <a class="sheet__link" href="/#company">Company</a>
+  <a class="sheet__link" href="/#expertise">Expertise</a>
+  <a class="sheet__link" href="/products/tcg-engine/">01 · TCG Engine</a>
+  <a class="sheet__link" href="/products/price-monitoring/">02 · Price History &amp; Monitoring</a>
+  <a class="sheet__link" href="/#team">Team</a>
+  <a class="sheet__link sheet__link--cta" href="#demo">Request a demo</a>
+</div>
+
+<main id="top">
+
+  <!-- ═══ HERO ═══════════════════════════════════════════════════════════ -->
+  <section class="hero" aria-labelledby="heroTitle">
+
+    <!-- The hero is framed as a camera viewfinder: the site is what the engine
+         sees when you point it at something. Decorative only. -->
+    <div class="vf">
+      <span class="vf__rule vf__rule--t" aria-hidden="true"></span>
+      <span class="vf__rule vf__rule--b" aria-hidden="true"></span>
+      <i class="vf__c vf__c--tl" aria-hidden="true"></i><i class="vf__c vf__c--tr" aria-hidden="true"></i>
+      <i class="vf__c vf__c--bl" aria-hidden="true"></i><i class="vf__c vf__c--br" aria-hidden="true"></i>
+
+      <div class="vf__scale" id="vfZoom" role="slider" tabindex="0"
+           aria-label="Camera zoom" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+        <span class="vf__nums" aria-hidden="true">3<b>·</b>2<b>·</b>1<b>·</b><i class="vf__gap"></i><b>·</b>1<b>·</b>2<b>·</b>3</span>
+        <s class="vf__zoom" aria-hidden="true"></s>
+      </div>
+    </div>
+    <div class="container hero__layout">
+      <div class="hero__copy">
+        <p class="hero__eyebrow label"><span class="mask"><span>soft body. hard tech.</span></span></p>
+
+        <h1 class="hero__mark" id="heroTitle">
+          <span class="sr-only">JellyTek</span>
+          <span class="mask" aria-hidden="true"><span><svg class="hero__logo" viewBox="0 0 496.2 321.1" fill="currentColor" role="img" aria-hidden="true">
+      <path d="M6.9,147.6h17.9c0,14.5,7.6,21.7,20,21.7s20.2-7.3,20.2-23v-78.9h17.7v80.4c0,24.7-15.3,37.1-38.1,37.1s-37.8-12.3-37.8-37.3Z"/>
+      <path d="M94,148.2c0-26,16.1-36.4,34.5-36.4s33.1,10,33.1,35.8-.1,3.8-.4,5.3h-50.8c1.1,13.1,7.7,18.8,18.8,18.8s14-3.4,16-10.2h15.4c-3.8,16-16.1,23.4-31.8,23.4s-34.8-10.4-34.8-36.7ZM145.2,142.2c-.4-9.9-5.6-17.2-16.9-17.2s-16.5,5.7-17.7,17.2h34.7Z"/>
+      <path d="M172.7,88.7h17.3v94.8h-17.3v-94.8Z"/>
+      <path d="M204.5,88.7h17.3v94.8h-17.3v-94.8Z"/>
+      <path d="M257,187.5c1.5-3.7,1.5-5.8,0-9.5l-26-64.9h17.7l18,48.8,18.2-48.8h17.9l-29.3,72.3c-8.3,20.3-17.1,27-35.5,24.9v-14.8c13,1.8,16.9-3.3,19-8.1Z"/>
+      <path d="M192.2,211.1h-28.2v-15.9h74.1v15.9h-28.2v100.3h-17.7v-100.3Z"/>
+      <path d="M231.8,276c0-26,16.1-36.4,34.5-36.4s33.1,10,33.1,35.8-.1,3.8-.4,5.3h-50.8c1.1,13.1,7.7,18.8,18.8,18.8s14-3.4,16-10.2h15.4c-3.8,16-16.1,23.4-31.8,23.4s-34.8-10.4-34.8-36.7ZM283,270.1c-.4-9.9-5.6-17.2-16.9-17.2s-16.5,5.7-17.7,17.2h34.7Z"/>
+      <path d="M310.5,216.5h17.3v56l28.7-31.6h19.2l-28.9,30.2,32.6,40.2h-19.2l-24-29.3-8.5,8.9v20.3h-17.3v-94.8Z"/>
+      <path d="M331.6,67.8c-2.9,6.6-4.8,13.3-4.7,20.5s3.5,9.4,8.7,9.6l10.4.3c4.2.1,6.4,4.4,6.2,8.2s-3.3,7.4-7.6,7.4h-11.3c-10.4-1.2-26.6-7.5-22.1-31.2,12.3-63.4,62.2-73.5,88.3-73.5,39.8,0,77.7,21.5,87.3,73.5,4.5,24.4-16.5,30.1-23.2,31.1h-11.7c-4.3,0-7.2-3.4-7.4-7.4-.2-3.8,2.2-8.1,6.4-8.2l10-.2c4.8-.1,8.3-4,8.5-8.8s-.8-13.1-2.2-18.1c-1.9-6.7-18.1-45.9-67.3-45.9s-63.8,32.4-68.4,42.8Z"/>
+      <path d="M405.5,173.6c0,4.9-3.2,8-7.2,8s-7.6-4.3-7.6-8.3l-.2-81.8c0-4.6-3.2-7.7-7.7-7.7h-23.9c-4.8,0-8.3-3.4-8.3-7.9s3.5-8,8.4-8h78.8c4.7,0,8.1,3,8.4,7.5.2,4-2.8,8.2-7.4,8.2h-25.4c-4.6,0-7.5,3.3-7.5,8l-.3,82Z"/>
+      <path d="M321.4,187.9c-4.5,0-6.9-4.4-6.9-8.1,0-3.9,2.8-7.8,7-7.8l11.3-.2c7,0,13.4-2.6,18.6-7.3,7.2-6.4,10.6-15.1,10.7-24.7l.3-34.5c0-4.6,3.7-7.4,7.8-7.4s7.4,3.3,7.4,7.9v35.5c0,23.6-17.4,45.1-42,46.6h-14.3Z"/>
+      <path d="M475.5,187.9c4.5,0,6.9-4.4,6.9-8.1s-2.8-7.8-7-7.8l-11.3-.2c-7,0-13.4-2.6-18.6-7.3-7.2-6.4-10.6-15.1-10.7-24.7l-.3-34.5c0-4.6-3.7-7.4-7.8-7.4s-7.4,3.3-7.4,7.9v35.5c0,23.6,17.4,45.1,42,46.6h14.3Z"/>
+      <path d="M257,178s7,17.2-18.8,17.2,4.3,11.6,4.3,11.6l15.4-6.4,7.7-18.9-8.6-3.4Z"/>
+      <path d="M263.1,203.2l-10.5,6.4s-3.5,1.5-16.2,1.5-11.7-5.5-11.7-5.5c0,0,18.2-2,19.2-2.4s8.2-3.6,8.2-3.6l11,3.6Z"/>
+            </svg></span></span>
+        </h1>
+
+        <div class="hero__body">
+          <p class="hero__lede">
+            Edge-native computer vision and market data for trading card games.
+            Our models run on the device in front of you — no cloud round-trip.
+          </p>
+          <div class="hero__actions">
+            <a class="btn magnet" href="#products">
+              <span class="t">See our products</span>
+              <svg class="btn__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg>
+            </a>
+            <a class="btn btn--ghost" href="#demo"><span class="t">Book a demo</span></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__statement">
+        <p class="hero__tagline"><span class="hero__tagline-a">soft body.</span><span class="hero__tagline-b">hard tech.</span></p>
+        <div class="hero__callouts" aria-hidden="true">
+          <span class="callout callout--a"><span class="callout__dot"></span><span class="t">on-device</span></span>
+          <span class="callout callout--b"><span class="callout__dot"></span><span class="t">poke me</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__foot container">
+      <span class="label">Computer vision · Market data · Edge deployment</span>
+      <span class="label label--dim"><span class="t">Scroll</span> <svg width="10" height="16" viewBox="0 0 10 16" fill="none" aria-hidden="true"><path d="M5 0v14M1 10l4 4 4-4" stroke="currentColor" stroke-width="1.4"/></svg></span>
+    </div>
+  </section>
+
+  <!-- ═══ 01 · WHO WE ARE ════════════════════════════════════════════════ -->
+  <section class="section" id="company" aria-labelledby="companyTitle">
+    <div class="container">
+      <span class="section__index label">01 — Who we are</span>
+      <div class="section__head grid12">
+        <h2 class="section__title reveal" id="companyTitle">A computer-vision company<br />that works on cards.</h2>
+        <p class="section__lede reveal">
+          Small team, deep specialism.
+        </p>
+      </div>
+
+      <div class="who grid12">
+        <div class="who__body reveal">
+          <p>
+            We came out of automotive AI — cameras that have to work on every
+            frame, in bad light, on a tiny power budget, without phoning home.
+            We pointed that discipline at trading cards.
+          </p>
+        </div>
+        <div class="who__vision reveal">
+          <span class="label">Our vision</span>
+          <blockquote>
+            Every card, on every device, recognised instantly and priced
+            honestly — without sending a picture to somebody else's cloud.
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 02 · WHAT WE SPECIALISE IN ═════════════════════════════════════ -->
+  <section class="section section--alt" id="expertise" aria-labelledby="expertiseTitle">
+    <div class="container">
+      <span class="section__index label">02 — Expertise</span>
+      <div class="section__head grid12">
+        <h2 class="section__title reveal" id="expertiseTitle">What we<br />specialise in.</h2>
+        <p class="section__lede reveal">
+          Four things, all pointed at the same problem.
+        </p>
+      </div>
+      <div class="caps reveal">
+        <article class="cap">
+          <span class="cap__n">01</span>
+          <h3 class="cap__title">On-device card vision</h3>
+          <p class="cap__text">Track, extract and classify every card in frame, in real time, on the device holding the camera.</p>
+        </article>
+        <article class="cap">
+          <span class="cap__n">02</span>
+          <h3 class="cap__title">Embedded &amp; NPU deployment</h3>
+          <p class="cap__text">Built for mobile silicon and low-cost SoCs, not just a workstation GPU.</p>
+        </article>
+        <article class="cap">
+          <span class="cap__n">03</span>
+          <h3 class="cap__title">Synthetic data pipelines</h3>
+          <p class="cap__text">We generate the training set rather than annotate it.</p>
+        </article>
+        <article class="cap">
+          <span class="cap__n">04</span>
+          <h3 class="cap__title">Market data &amp; pricing</h3>
+          <p class="cap__text">Pricing and history wired to the same recogniser that reads the card.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 03 · PRODUCTS ══════════════════════════════════════════════════ -->
+  <section class="section" id="products" aria-labelledby="productsTitle">
+    <div class="container">
+      <span class="section__index label">03 — Products</span>
+      <div class="section__head grid12">
+        <h2 class="section__title reveal" id="productsTitle">Two products,<br />one foundation.</h2>
+        <p class="section__lede reveal">
+          A recognition engine, and the market data that sits on top of it.
+        </p>
+      </div>
+
+      <div class="prods reveal">
+        <a class="prod" href="/products/tcg-engine/">
+          <span class="prod__n">01</span>
+          <h3 class="prod__title">TCG Engine</h3>
+          <p class="prod__text">
+            Identifies trading cards from a live camera, entirely on-device.
+            Everything else we build sits on it.
+          </p>
+          <div class="prod__fig" aria-hidden="true"><svg viewBox="0 0 420 96" role="img" aria-label="Schematic: cards entering a recognition pipeline">
+              <g class="fig__card fig__card--mini">
+                <rect x="8" y="22" width="34" height="48" rx="3" transform="rotate(-8 25 46)"/>
+                <rect x="46" y="26" width="34" height="48" rx="3"/>
+              </g>
+              <g class="fig__box"><rect x="4" y="18" width="82" height="58"/></g>
+              <g class="fig__flow"><path d="M98 48h34M124 42l8 6-8 6"/></g>
+              <rect class="pf-mod" x="144" y="30" width="74" height="36" rx="2"/>
+              <text class="fig__label" x="156" y="52">extract</text>
+              <g class="fig__flow"><path d="M230 48h34M256 42l8 6-8 6"/></g>
+              <rect class="pf-mod" x="276" y="30" width="74" height="36" rx="2"/>
+              <text class="fig__label" x="286" y="52">classify</text>
+              <g class="fig__flow"><path d="M362 48h20M374 42l8 6-8 6"/></g>
+              <rect class="pf-hit" x="392" y="30" width="24" height="36" rx="2"/>
+            </svg></div>
+          <span class="prod__cta"><span class="t">Explore the engine</span><svg class="btn__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
+        </a>
+
+        <a class="prod" href="/products/price-monitoring/">
+          <span class="prod__n">02</span>
+          <h3 class="prod__title">Price History &amp; Monitoring</h3>
+          <p class="prod__text">
+            What a card is worth, what it was worth, and the moment that changes.
+          </p>
+          <div class="prod__fig" aria-hidden="true"><svg viewBox="0 0 420 96" role="img" aria-label="Schematic: a card price plotted over time">
+              <g class="chart__grid"><line x1="0" y1="30" x2="420" y2="30"/><line x1="0" y1="60" x2="420" y2="60"/></g>
+              <path class="chart__area" d="M0 72 Q40 68 70 60 T140 52 Q180 46 210 64 T280 44 Q330 30 360 26 T420 18 L420 90 L0 90 Z"/>
+              <path class="chart__line" d="M0 72 Q40 68 70 60 T140 52 Q180 46 210 64 T280 44 Q330 30 360 26 T420 18"/>
+              <circle class="chart__dot" cx="418" cy="18" r="4" style="opacity:1"/>
+            </svg></div>
+          <span class="prod__cta"><span class="t">Explore price tooling</span><svg class="btn__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h9M6.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 04 · TEAM ══════════════════════════════════════════════════════ -->
+  <section class="section section--alt" id="team" aria-labelledby="teamTitle">
+    <div class="container">
+      <span class="section__index label">04 — Team</span>
+      <div class="section__head grid12">
+        <h2 class="section__title reveal" id="teamTitle">The people<br />behind it.</h2>
+        <p class="section__lede reveal">
+          Deep embedded machine-learning experience across the team.
+        </p>
+      </div>
+      <div class="team-grid reveal">
+        <article class="member">
+          <svg class="member__avatar" viewBox="0 0 72 72" role="img" aria-label="johnny's jellyfish">
+            <path d="M10 38c0-14 12-24 26-24s26 10 26 24c0 3-2 4-4 4H14c-2 0-4-1-4-4Z" fill="#4A8CF7" fill-opacity="0.22" stroke="#3569C4" stroke-width="1.6"/>
+            <path d="M18 42c0 8-4 12-4 18M28 42c0 10-3 14-3 20M36 42c0 9 2 13 2 20M44 42c0 10 3 14 3 20M54 42c0 8 4 12 4 18"
+                  fill="none" stroke="#3569C4" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+            <circle cx="29" cy="30" r="3.4" fill="none" stroke="#3569C4" stroke-width="1.4"/>
+            <circle cx="43" cy="30" r="3.4" fill="none" stroke="#3569C4" stroke-width="1.4"/>
+          </svg>
+          <h3 class="member__name">johnny</h3>
+          <p class="member__role">CTO · Engine</p>
+          <p class="member__text">Builds the engine — the runtime, the models, and everything that has to survive contact with real hardware.</p>
+        </article>
+        <article class="member">
+          <svg class="member__avatar" viewBox="0 0 72 72" role="img" aria-label="tess's jellyfish">
+            <path d="M10 38c0-14 12-24 26-24s26 10 26 24c0 3-2 4-4 4H14c-2 0-4-1-4-4Z" fill="#F0559B" fill-opacity="0.22" stroke="#C93F7E" stroke-width="1.6"/>
+            <path d="M18 42c0 8-4 12-4 18M28 42c0 10-3 14-3 20M36 42c0 9 2 13 2 20M44 42c0 10 3 14 3 20M54 42c0 8 4 12 4 18"
+                  fill="none" stroke="#C93F7E" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+            <circle cx="29" cy="30" r="3.4" fill="none" stroke="#C93F7E" stroke-width="1.4"/>
+            <circle cx="43" cy="30" r="3.4" fill="none" stroke="#C93F7E" stroke-width="1.4"/>
+          </svg>
+          <h3 class="member__name">tess</h3>
+          <p class="member__role">App Design</p>
+          <p class="member__text">Designs the apps that sit on the engine, and the way people actually use them.</p>
+        </article>
+        <article class="member">
+          <svg class="member__avatar" viewBox="0 0 72 72" role="img" aria-label="james's jellyfish">
+            <path d="M10 38c0-14 12-24 26-24s26 10 26 24c0 3-2 4-4 4H14c-2 0-4-1-4-4Z" fill="#3FC98D" fill-opacity="0.22" stroke="#2FA574" stroke-width="1.6"/>
+            <path d="M18 42c0 8-4 12-4 18M28 42c0 10-3 14-3 20M36 42c0 9 2 13 2 20M44 42c0 10 3 14 3 20M54 42c0 8 4 12 4 18"
+                  fill="none" stroke="#2FA574" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+            <circle cx="29" cy="30" r="3.4" fill="none" stroke="#2FA574" stroke-width="1.4"/>
+            <circle cx="43" cy="30" r="3.4" fill="none" stroke="#2FA574" stroke-width="1.4"/>
+          </svg>
+          <h3 class="member__name">james</h3>
+          <p class="member__role">Business</p>
+          <p class="member__text">Partnerships, customers, and getting the thing in front of the people who need it.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--ink" id="demo" aria-labelledby="demoTitle">
+    <div class="container">
+      <span class="section__index label">05 — Demo</span>
+
+      <div class="demo__head grid12">
+        <h2 class="section__title reveal" id="demoTitle">Let us show you<br />the real thing.</h2>
+        <div class="demo__contact reveal">
+          <a class="demo__mail link" href="mailto:marketing@jellytek.net">marketing@jellytek.net</a>
+          <a class="demo__tel link" href="tel:+61439505062">0439 505 062</a>
+          <p>The short version is on this page. We walk through the rest — live, on real cards — in a demo.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="container foot__inner">
+    <div class="foot__brand">
+      <svg class="foot__logo" viewBox="0 0 232.9 132.5" fill="currentColor" role="img" aria-label="JellyTek">
+              <path d="M0,40.5h13.2c0,8.6,4.6,12.8,11.8,12.8c7.4,0,11.8-4.3,11.8-13.8V2.4H50v38.1C50,56.8,39.8,64.6,25,64.6C10.2,64.6,0,56.8,0,40.5z"/>
+              <path d="M56.9,40.9c0-17,10.8-23.6,22.9-23.6c11.7,0,21.6,6.1,21.6,23.4c0,1.7-0.1,2.5-0.3,3.5H69.1c0.7,7.6,4.6,10.7,11,10.7c5.9,0,8.4-2.4,9.5-6h11.3c-2.3,10.4-10.3,15.8-20.9,15.8C68.3,64.6,56.9,58.2,56.9,40.9z M89.3,36.7c-0.2-5.3-2.9-9.6-9.9-9.6c-6,0-9.5,3.3-10.3,9.6H89.3z"/>
+              <path d="M108.3,1.2l12.8,0l0,61.3l-12.8,0L108.3,1.2z"/>
+              <path d="M130.2,1.2l12.8,0l0,61.3l-12.8,0L130.2,1.2z"/>
+              <path d="M165.3,59.6l-16.7-41.4h13.1l10.6,29.4l10.9-29.4h13.1l-18.7,45.9C172,78.2,167.8,82,153.2,82V70.3C162.2,70.3,167.3,64.6,165.3,59.6z"/>
+              <path d="M109,82h-12c-3.2,0-5.8-2.6-5.8-5.8v0c0-3.2,2.6-5.8,5.8-5.8H140V82h-17.8v49.7H109V82z"/>
+              <path d="M135.5,108.8c0-17,10.8-23.6,22.9-23.6c11.7,0,21.6,6.1,21.6,23.4c0,1.7-0.1,2.5-0.3,3.5h-32.1c0.7,7.6,4.6,10.7,11,10.7c5.9,0,8.4-2.4,9.5-6h11.3c-2.3,10.4-10.3,15.8-20.9,15.8C146.9,132.5,135.5,126.1,135.5,108.8z M167.9,104.6c-0.2-5.3-2.9-9.6-9.9-9.6c-6,0-9.5,3.3-10.3,9.6H167.9z"/>
+              <path d="M186.9,70.3h12.8v34.5l16.7-18.7h14.1l-18.4,19.4l20.8,26.2h-14.1l-14.5-18l-4.6,4.8v13.1h-12.8V70.3z"/>
+              <rect x="137.1" y="70.3" width="16.4" height="11.7"/>
+            </svg>
+      <p class="foot__tag">soft body. hard tech.</p>
+    </div>
+
+    <nav class="foot__nav" aria-label="Footer">
+      <a class="nav__link" href="/products/tcg-engine/">TCG Engine</a>
+      <a class="nav__link" href="/products/price-monitoring/">Price monitoring</a>
+      <a class="nav__link" href="/#team">Team</a>
+      <a class="nav__link" href="mailto:marketing@jellytek.net">Contact</a>
+    </nav>
+
+    <div class="foot__meta">
+      <span class="tag chip--live"><span class="pulse"></span><span class="t">online — drifting in the current</span></span>
+      <span class="foot__legal">
+        <span class="t">© 2026 jellytek.net</span>
+        <a class="link commit" id="commit" href="https://github.com/ShmukaDuk/jellytek/commits/main"
            target="_blank" rel="noopener">…</a>
       </span>
-    </footer>
-  </main>
+    </div>
+  </div>
+</footer>
 
-  <script src="js/jellyfish.js" defer></script>
-  <script src="js/version.js" defer></script>
+<!-- content layer: content.js is the editable record, hydrate applies this
+     page's slice of it. Both are synchronous so the DOM is final before the
+     deferred scripts (which measure layout) run. -->
+<script src="/js/schema.js"></script>
+<script src="/content.js"></script>
+<script src="/js/hydrate.js"></script>
+
+<script src="/js/jellyfish.js" defer></script>
+<script src="/js/site.js" defer></script>
+<script src="/js/version.js" defer></script>
+<script src="/js/edit.js" defer></script>
 </body>
 </html>

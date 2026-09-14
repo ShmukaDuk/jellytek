@@ -1,0 +1,303 @@
+/* jellytek — edit-mode chrome. Loaded only on ?edit, by js/edit.js.
+   Deliberately looks like a tool, not like the site: it must never be mistaken
+   for the real page. */
+
+:root {
+  --jt-ui:      #10141B;
+  --jt-ui-2:    #1B2130;
+  --jt-ui-3:    #253047;
+  --jt-line:    #2C344A;
+  --jt-fg:      #E8ECF4;
+  --jt-dim:     #8A93A3;
+  --jt-live:    #2440E8;
+  --jt-warn:    #E0A33A;
+  --jt-ok:      #35C48D;
+  --jt-panel-w: 330px;
+}
+
+/* the page moves over so nothing hides under the panel */
+html.editing body { padding-right: var(--jt-panel-w); }
+html.editing .nav { padding-right: calc(var(--jt-panel-w) + var(--gutter)); }
+html.editing .rulers,
+html.editing .progress { right: var(--jt-panel-w); }
+
+@media (max-width: 900px) {
+  html.editing body { padding-right: 0; padding-bottom: 48vh; }
+  html.editing .nav { padding-right: var(--gutter); }
+  html.editing .rulers, html.editing .progress { right: 0; }
+}
+
+/* ── editable text ─────────────────────────────────────────────────────── */
+.jt-ed {
+  outline: 1px dashed rgba(36, 64, 232, 0.38);
+  outline-offset: 3px;
+  border-radius: 2px;
+  cursor: text;
+  transition: outline-color 0.15s ease, background 0.15s ease;
+}
+.jt-ed:hover { outline-color: var(--jt-live); background: rgba(36, 64, 232, 0.06); }
+.jt-ed:focus { outline: 2px solid var(--jt-live); outline-offset: 3px; background: rgba(36, 64, 232, 0.08); }
+
+/* edit mode must not fight the page's own motion */
+html.editing .magnet { transform: none !important; }
+
+/* ── block toolbars ────────────────────────────────────────────────────── */
+/* Every movable, deletable thing on the page carries its own controls. They
+   stay invisible until you hover it, so the page still reads as the page. */
+html.editing .jt-blk { position: relative; }
+html.editing .jt-blk { outline: 1px dashed transparent; transition: outline-color 0.15s ease; }
+html.editing .jt-blk:hover { outline-color: rgba(36, 64, 232, 0.22); }
+
+.jt-tools {
+  position: absolute;
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 5px;
+  background: var(--jt-ui);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+.jt-blk:hover > .jt-tools,
+.jt-tools:focus-within { opacity: 1; pointer-events: auto; }
+
+.jt-tools--section { top: 8px; left: 8px; }
+.jt-tools--row     { top: -13px; right: 6px; }
+
+.jt-tools__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px 0 5px;
+  color: var(--jt-fg);
+  font: 600 11px/22px ui-sans-serif, system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.jt-tools__label--grab { cursor: grab; }
+.jt-tools__label--grab:active { cursor: grabbing; }
+
+.jt-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 22px;
+  padding: 0;
+  border: 0; border-radius: 3px;
+  background: transparent;
+  color: var(--jt-fg);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.jt-tool svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.jt-tool:hover { background: var(--jt-ui-3); }
+.jt-tool:focus-visible { outline: 2px solid var(--jt-live); outline-offset: -1px; }
+.jt-tool--danger:hover { background: #B3261E; color: #fff; }
+
+.jt-sec--moving { opacity: 0.4; outline: 2px solid var(--jt-live) !important; }
+
+/* a moved block flashes once, so you can see where it landed */
+@keyframes jtFlash {
+  from { box-shadow: inset 0 0 0 2px var(--jt-live); }
+  to   { box-shadow: inset 0 0 0 2px transparent; }
+}
+.jt-flash { animation: jtFlash 0.7s ease-out; }
+
+/* ── undo toast ────────────────────────────────────────────────────────── */
+.jt-toast {
+  position: fixed;
+  left: 50%; bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 16px;
+  border-radius: 6px;
+  background: var(--jt-ui);
+  color: var(--jt-fg);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  font: 13px/1.3 ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+html.editing .jt-toast { left: calc(50% - var(--jt-panel-w) / 2); }
+@media (max-width: 900px) { html.editing .jt-toast { left: 50%; bottom: calc(48vh + 16px); } }
+.jt-toast[hidden] { display: none; }
+.jt-toast__undo {
+  font: inherit; font-weight: 600;
+  padding: 5px 10px;
+  border: 0; border-radius: 4px;
+  background: var(--jt-live); color: #fff;
+  cursor: pointer;
+}
+.jt-toast__undo:hover { background: #1A31C4; }
+
+/* ── panel ─────────────────────────────────────────────────────────────── */
+.jt-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  z-index: 999;
+  width: var(--jt-panel-w);
+  display: flex;
+  flex-direction: column;
+  background: var(--jt-ui);
+  color: var(--jt-fg);
+  border-left: 1px solid var(--jt-line);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+}
+@media (max-width: 900px) {
+  .jt-panel { top: auto; left: 0; width: auto; height: 48vh; border-left: 0; border-top: 1px solid var(--jt-line); }
+}
+
+.jt-panel__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--jt-line);
+}
+.jt-panel__head strong { font-size: 13px; letter-spacing: 0.02em; }
+
+.jt-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--jt-line); }
+.jt-tab {
+  font: inherit; font-size: 11.5px;
+  padding: 9px 4px;
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  color: var(--jt-dim); cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.jt-tab:hover { color: var(--jt-fg); }
+.jt-tab.is-on { color: var(--jt-fg); border-bottom-color: var(--jt-live); }
+.jt-tab:focus-visible { outline: 2px solid var(--jt-live); outline-offset: -2px; }
+
+.jt-scroll { flex: 1; overflow-y: auto; padding-bottom: 12px; }
+.jt-pane[hidden] { display: none; }
+
+.jt-hint { padding: 10px 14px; margin: 0; color: var(--jt-dim); font-size: 11.5px; }
+.jt-hint--tight { padding: 0 0 8px; }
+.jt-hint code { font-family: ui-monospace, Menlo, monospace; color: var(--jt-fg); }
+.jt-hint b { color: var(--jt-fg); font-weight: 600; }
+.jt-a { color: #8FA6FF; }
+
+.jt-block { padding: 10px 14px 6px; border-top: 1px solid var(--jt-line); }
+.jt-block h4 {
+  margin: 0 0 8px;
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--jt-dim); font-weight: 600;
+}
+
+/* ── rows ──────────────────────────────────────────────────────────────── */
+.jt-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 6px; border-radius: 4px; cursor: pointer;
+}
+.jt-row:hover { background: var(--jt-ui-2); }
+.jt-row label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; }
+.jt-row > span, .jt-row label > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jt-row input[type="checkbox"] { accent-color: var(--jt-live); flex: none; width: 14px; height: 14px; cursor: pointer; }
+.jt-row input[type="checkbox"]:not(:checked) + span { color: var(--jt-dim); text-decoration: line-through; }
+
+.jt-row--field { cursor: default; }
+.jt-row--field > span:first-child { flex: 1; color: var(--jt-dim); }
+
+.jt-row--drag { cursor: grab; }
+.jt-row--drag.is-dragging { opacity: 0.45; background: var(--jt-ui-2); }
+.jt-grip { color: var(--jt-dim); font-size: 14px; flex: none; }
+.jt-list { display: flex; flex-direction: column; }
+
+/* ── controls ──────────────────────────────────────────────────────────── */
+.jt-btn {
+  font: inherit; font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--jt-line);
+  background: var(--jt-ui-2); color: var(--jt-fg);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.jt-btn:hover { background: var(--jt-ui-3); border-color: #3C4763; }
+.jt-btn:focus-visible { outline: 2px solid var(--jt-live); outline-offset: 2px; }
+.jt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.jt-btn--primary { background: var(--jt-live); border-color: var(--jt-live); font-weight: 600; width: 100%; }
+.jt-btn--primary:hover { background: #1A31C4; border-color: #1A31C4; }
+.jt-btn--quiet { background: transparent; }
+.jt-btn--quiet:hover { background: var(--jt-ui-2); }
+.jt-btn--tiny { padding: 4px 9px; font-size: 11px; flex: none; }
+.jt-block .jt-btn--quiet:not(.jt-btn--tiny) { width: 100%; margin-top: 8px; }
+
+.jt-select, .jt-input {
+  font: inherit; font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--jt-line);
+  background: var(--jt-ui-2); color: var(--jt-fg);
+  max-width: 160px;
+}
+.jt-input { width: 100%; max-width: none; font-family: ui-monospace, Menlo, monospace; }
+.jt-select:focus-visible, .jt-input:focus-visible { outline: 2px solid var(--jt-live); outline-offset: 1px; }
+
+.jt-color {
+  flex: none;
+  width: 40px; height: 26px;
+  padding: 0;
+  border: 1px solid var(--jt-line);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+.jt-color::-webkit-color-swatch-wrapper { padding: 2px; }
+.jt-color::-webkit-color-swatch { border: 0; border-radius: 2px; }
+
+.jt-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.jt-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 11.5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--jt-line);
+  background: var(--jt-ui-2); color: var(--jt-fg);
+  cursor: pointer;
+}
+.jt-chip:hover { background: var(--jt-ui-3); }
+.jt-chip i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+
+.jt-field { padding: 6px 6px 10px; }
+.jt-field__head { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--jt-dim); margin-bottom: 4px; }
+.jt-field__head b { color: var(--jt-fg); font-weight: 500; font-family: ui-monospace, Menlo, monospace; }
+.jt-range { width: 100%; accent-color: var(--jt-live); cursor: pointer; }
+
+/* ── log ───────────────────────────────────────────────────────────────── */
+.jt-log { margin-top: 10px; max-height: 180px; overflow-y: auto; }
+.jt-log__line {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px; line-height: 1.6;
+  color: var(--jt-dim);
+  word-break: break-word;
+}
+.jt-log__line.is-ok   { color: var(--jt-ok); }
+.jt-log__line.is-warn { color: var(--jt-warn); }
+
+/* ── footer ────────────────────────────────────────────────────────────── */
+.jt-panel__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--jt-line);
+}
+.jt-status { font-size: 11px; color: var(--jt-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jt-status.is-ok   { color: var(--jt-ok); }
+.jt-status.is-warn { color: var(--jt-warn); }
+.jt-link {
+  font: inherit; font-size: 11px;
+  background: none; border: 0; padding: 0;
+  color: var(--jt-dim); text-decoration: underline; cursor: pointer; flex: none;
+}
+.jt-link:hover { color: var(--jt-fg); }
+
+
+/* ── deleted list ──────────────────────────────────────────────────────── */
+.jt-block--deleted { background: rgba(224, 163, 58, 0.06); }
+.jt-block--deleted h4 { color: var(--jt-warn); }
+.jt-block--deleted[hidden] { display: none; }
