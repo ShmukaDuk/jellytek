@@ -187,6 +187,7 @@ needed unless the text sits beside an icon, in which case wrap the words in
 index.html                          home — the company
 products/tcg-engine/index.html      product 01
 products/price-monitoring/index.html product 02
+privacy.html        Cards and Friends privacy policy (fixed copy, not in the editor)
 css/style.css       the whole design system; every colour is a :root token
 content.js          all three pages' text + site-wide theme — the file you edit
 js/schema.js        what is editable on each page (key → CSS selector)
