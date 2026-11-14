@@ -33,9 +33,8 @@ const PALETTE = {
   name:        (h, a) => `hsla(${h}, 85%, 80%, ${a})`,
 };
 
-/* Camera zoom, driven by the viewfinder's zoom slider in site.js. `zoom` is
-   the target the control writes; `cur` eases toward it so a drag reads as a
-   lens moving rather than a jump. */
+/* Camera zoom. Nothing drives it on the simple site, so it sits at 1; any
+   script that sets `zoom` gets an eased lens move via `cur`. */
 window.JT_CAM = window.JT_CAM || { zoom: 1, cur: 1 };
 
 let W = 0, H = 0, DPR = 1;
@@ -297,7 +296,7 @@ function updateJelly(j, t, dt, chaser) {
   j.tilt += (Math.max(-0.5, Math.min(0.5, j.vx * 0.004)) - j.tilt) * 0.05;
 }
 
-function drawJelly(j, t, showNames) {
+function drawJelly(j, t) {
   const R = bellRadius(j);
   const pulse = Math.sin(j.phase);
   const hue = j.hue + 8 * Math.sin(t * 0.3 + j.seed);
@@ -365,14 +364,6 @@ function drawJelly(j, t, showNames) {
   }
 
   ctx.restore();
-
-  // name tag — only while the pointer is in the water. nothing announces it.
-  if (showNames) {
-    ctx.font = "11px 'Fragment Mono', ui-monospace, Menlo, monospace";
-    ctx.textAlign = "center";
-    ctx.fillStyle = PALETTE.name(hue, 0.75);
-    ctx.fillText(j.name, j.x, j.y - bh * 1.35 - 10 + 3 * Math.sin(t * 1.1 + j.seed));
-  }
 }
 
 /* ── main draw ────────────────────────────────────────────────────────── */
@@ -403,7 +394,7 @@ function drawFrame(t, dt) {
 
   // ink settles on paper — the whole school is drawn multiplied
   ctx.globalCompositeOperation = "lighter";
-  for (const j of jellies) drawJelly(j, t, pointerLive);
+  for (const j of jellies) drawJelly(j, t);
   drawSparks(dt);
   ctx.globalCompositeOperation = "source-over";
 }
