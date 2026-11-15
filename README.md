@@ -19,8 +19,8 @@ The two products are real and live elsewhere:
 
 - **Cards & Friends** — `cards/apps/mobile/cards_and_friends` (free mobile
   app: on-device card recognition, offline-first collection, chat).
-- **TCG Stream Tool** — `cards/apps/computer/tcg_stream_tool` (paid streamer
-  tool: live card recognition + prices on stream, OBS overlay).
+- **Cards & Chat** — `cards/apps/computer/tcg_stream_tool` (subscription
+  streamer tool: live card recognition + prices on stream, OBS overlay).
 
 When editing the product cards, the test is: *would a collector or a streamer
 understand the product from five bullets?* Anything deeper belongs in the apps
