@@ -1,36 +1,30 @@
-// jellytek — a small school of jellyfish, dependency-free canvas 2D.
-// Verlet-integrated tentacles, pulsing bells, pointer steering, poke physics.
+// jellytek — a small school of doodled jellyfish, dependency-free canvas 2D.
 //
-// Lit for the dark site: bells and tentacles are drawn additively ("lighter"),
-// so they read as bioluminescence against the deep indigo ground rather than as
-// ink on paper. Every colour comes from PALETTE below — if the site ever goes
-// light again, that object and the composite mode are the two things to flip.
-// The canvas is fixed to the whole viewport and sits behind every section, so
-// the school roams the entire page. It takes no pointer events of its own —
-// window-level listeners feed it instead, so a jelly drifting over a button
-// never swallows the click. It pauses in a background tab and renders a single
-// frame under prefers-reduced-motion.
+// Drawn like the rest of the site's doodles: a few wobbly ink lines, round
+// caps, a whisper of fill. The lines "boil" — re-jittered a few times a second
+// like hand-drawn animation — and the jellies swim with a cartoon stroke:
+// stretch tall (the push), snap flat, relax round. The bell rides a springy
+// squash-and-stretch that overshoots, and each tentacle follows the bell a
+// beat late from root to tip, so the whole stroke ripples down it.
+//
+// Lines are drawn additively ("lighter") so they glow faintly on the deep
+// indigo ground. The canvas is fixed to the whole viewport behind every
+// section and takes no pointer events of its own — window-level listeners feed
+// it, so a jelly drifting over a button never swallows the click. It pauses in
+// a background tab and renders a single frame under prefers-reduced-motion.
 "use strict";
 
 const canvas = document.getElementById("sea");
 const ctx = canvas && canvas.getContext("2d", { alpha: true });
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ── palette ──────────────────────────────────────────────────────────────
-   Every colour the renderer can produce, in one place. Tuned for the deep
-   indigo ground: high lightness, drawn additively so overlaps brighten. */
+/* ── palette ──────────────────────────────────────────────────────────── */
 const PALETTE = {
-  bellCore:    (h, a) => `hsla(${h}, 95%, 78%, ${a})`,
-  bellMid:     (h, a) => `hsla(${h + 25}, 85%, 66%, ${a})`,
-  bellEdge:    (h, a) => `hsla(${h + 50}, 80%, 60%, ${a})`,
-  rim:         (h, a) => `hsla(${h}, 100%, 78%, ${a})`,
-  organ:       (h, a) => `hsla(${h + 60}, 85%, 76%, ${a})`,
-  tentacle:    (h, a) => `hsla(${h + 20}, 88%, 72%, ${a})`,
-  tentacleHalo:(h, a) => `hsla(${h}, 92%, 70%, ${a})`,
-  oral:        (h, a) => `hsla(${h + 40}, 75%, 76%, ${a})`,
-  spark:       (h, a) => `hsla(${h}, 95%, 75%, ${a})`,
-  ripple:      (a)    => `hsla(175, 90%, 70%, ${a})`,
-  name:        (h, a) => `hsla(${h}, 85%, 80%, ${a})`,
+  ink:    (h, a) => `hsla(${h}, 85%, 74%, ${a})`,
+  glow:   (h, a) => `hsla(${h}, 90%, 68%, ${a})`,
+  fill:   (h, a) => `hsla(${h}, 80%, 70%, ${a})`,
+  spark:  (h, a) => `hsla(${h}, 95%, 75%, ${a})`,
+  ripple: (a)    => `hsla(175, 90%, 70%, ${a})`,
 };
 
 /* Camera zoom. Nothing drives it on the simple site, so it sits at 1; any
@@ -59,32 +53,26 @@ function localPoint(e) {
 }
 
 /* ── the school ───────────────────────────────────────────────────────── */
-const TENTACLES = 11;
-const SEGS = 14;
-const ORAL_ARMS = 4;
-const ORAL_SEGS = 9;
-
-function makeRope(segments, segLen, x, y) {
-  const pts = [];
-  for (let i = 0; i <= segments; i++) {
-    pts.push({ x, y: y + i * segLen, px: x, py: y + i * segLen });
-  }
-  return { pts, segLen };
-}
+const TENTACLES = 5;
+const TENTACLE_PTS = 9;
+const BOIL_FPS = 7;            // how often the ink lines re-jitter
 
 function makeJelly(name, hue, fx, fy, scale, seed) {
   return {
     name, hue, scale, seed,
     fullScale: scale,          // rebirth shrinks scale; it grows back to this
     clickTimes: [],
-    fx, fy,                    // resting position as a fraction of the canvas
+    fx, fy,                    // starting position as a fraction of the canvas
     x: 0, y: 0,
     vx: 0, vy: 0,
     phase: seed * 2.1,
-    phaseSpeed: 1.4,
+    phaseSpeed: 1.6,
+    heading: seed * 1.7,       // the way the bell points — and jets
+    targetHeading: seed * 1.7,
+    swimTimer: 0.4 + (seed % 1) * 2,
     tilt: 0,
-    tentacles: [],
-    oralArms: [],
+    // springy bell size (width, height multipliers) and their velocities
+    sw: 1, sh: 1, swv: 0, shv: 0,
   };
 }
 
@@ -95,23 +83,12 @@ const jellies = [
   makeJelly("johnny", 215, 0.80, 0.28, 0.78, 5.3),   // blue
 ];
 
-const bellRadius = (j) => Math.min(W, H) * 0.105 * j.scale * window.JT_CAM.cur;
-
-const tentacleLenF = (along) => 0.55 + 0.5 * Math.sin(along * Math.PI);
-
-function rebuildJellyRopes(j) {
-  const R = bellRadius(j);
-  j.tentacles = Array.from({ length: TENTACLES }, (_, i) =>
-    makeRope(SEGS, R * 0.24 * tentacleLenF(i / (TENTACLES - 1)), j.x, j.y));
-  j.oralArms = Array.from({ length: ORAL_ARMS }, () =>
-    makeRope(ORAL_SEGS, R * 0.17, j.x, j.y));
-}
+const bellRadius = (j) => Math.min(W, H) * 0.1 * j.scale * window.JT_CAM.cur;
 
 function placeJellies() {
   for (const j of jellies) {
     j.x = W * j.fx;
     j.y = H * j.fy;
-    rebuildJellyRopes(j);
   }
 }
 
@@ -124,76 +101,55 @@ function nearestJelly(x, y) {
   return best;
 }
 
-/* ── rope physics ─────────────────────────────────────────────────────── */
-function simulateRope(rope, anchorX, anchorY, t, idx, sway, flare = 0) {
-  const pts = rope.pts;
-  pts[0].x = anchorX;
-  pts[0].y = anchorY;
+/* ── the stroke ───────────────────────────────────────────────────────── */
 
-  for (let i = 1; i < pts.length; i++) {
-    const p = pts[i];
-    const vx = (p.x - p.px) * 0.92;   // heavy water drag — hang, don't streak
-    const vy = (p.y - p.py) * 0.92;
-    p.px = p.x;
-    p.py = p.y;
-    const along = i / pts.length;
-    const wave =
-      Math.sin(t * 1.1 + idx * 1.7 + i * 0.35) +
-      0.5 * Math.sin(t * 2.3 + idx * 2.9 + i * 0.5);
-    p.x += vx + wave * sway * (0.25 + 0.75 * along) + flare * along;
-    p.y += vy + 0.09;                 // buoyant-drag settle
+// One swim stroke, posed like a cartoon jelly: stretch tall and narrow with
+// the tentacles pulled in (that's the push), snap flat and wide with them
+// crumpled, then relax round with them splayed out.
+//   s — stretch 0..1   q — squash 0..1   push — thrust 0..1
+const ease = (k) => k * k * (3 - 2 * k);
+function strokePose(phase) {
+  const u = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
+  if (u < 0.34) {
+    const k = u / 0.34;
+    return { s: ease(k), q: 0, push: Math.sin(Math.PI * k) };
   }
-
-  for (let pass = 0; pass < 2; pass++) {
-    for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i], b = pts[i + 1];
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const dist = Math.hypot(dx, dy) || 1e-6;
-      const diff = (dist - rope.segLen) / dist;
-      const ax = dx * 0.5 * diff, ay = dy * 0.5 * diff;
-      if (i === 0) { b.x -= dx * diff; b.y -= dy * diff; }
-      else { a.x += ax; a.y += ay; b.x -= ax; b.y -= ay; }
-    }
+  if (u < 0.47) {
+    const k = ease((u - 0.34) / 0.13);
+    return { s: 1 - k, q: k, push: 0 };
   }
+  return { s: 0, q: 1 - ease((u - 0.47) / 0.53), push: 0 };
 }
 
-function tracePath(pts, a, b) {
-  ctx.beginPath();
-  ctx.moveTo(pts[a].x, pts[a].y);
-  for (let i = a + 1; i < b; i++) {
-    const mx = (pts[i].x + pts[i + 1].x) / 2;
-    const my = (pts[i].y + pts[i + 1].y) / 2;
-    ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
-  }
+/* ── hand-drawn wobble ────────────────────────────────────────────────── */
+
+// deterministic jitter in -1..1, re-rolled BOIL_FPS times a second
+function wob(j, n, boil) {
+  const v = Math.sin(j.seed * 917.3 + n * 12.9898 + boil * 78.233) * 43758.5453;
+  return (v - Math.floor(v)) * 2 - 1;
 }
 
-// A soft wide pass under a finer core, stroked in three width steps so the
-// rope tapers from base to tip. canvas shadowBlur is far too slow for this.
-function drawRope(rope, width, color, halo) {
-  const pts = rope.pts;
-  const n = pts.length;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+// a smooth line through points, the way a pen would take them
+function smoothPath(pts, closeToStart) {
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i][0] + pts[i + 1][0]) / 2;
+    const my = (pts[i][1] + pts[i + 1][1]) / 2;
+    ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+  }
+  const lastP = pts[pts.length - 1];
+  if (closeToStart) ctx.quadraticCurveTo(lastP[0], lastP[1], pts[0][0], pts[0][1]);
+  else ctx.lineTo(lastP[0], lastP[1]);
+}
 
-  tracePath(pts, 0, n - 1);
-  ctx.strokeStyle = halo;
-  ctx.globalAlpha = 0.09;
-  ctx.lineWidth = width * 3.2;
+// one inked stroke: a soft glow pass under the line itself
+function ink(hue, width, alpha) {
+  ctx.strokeStyle = PALETTE.glow(hue, 0.07 * alpha);
+  ctx.lineWidth = width * 4;
   ctx.stroke();
-
-  ctx.strokeStyle = color;
-  const steps = [
-    [0, Math.floor(n * 0.45), 1, 0.40],
-    [Math.floor(n * 0.45), Math.floor(n * 0.75), 0.55, 0.28],
-    [Math.floor(n * 0.75), n - 1, 0.3, 0.18],
-  ];
-  for (const [a, b, wf, alpha] of steps) {
-    tracePath(pts, a, b);
-    ctx.globalAlpha = alpha;
-    ctx.lineWidth = Math.max(0.5, width * wf);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
+  ctx.strokeStyle = PALETTE.ink(hue, 0.72 * alpha);
+  ctx.lineWidth = width;
+  ctx.stroke();
 }
 
 /* ── ripples + the poke-five-times burst ──────────────────────────────── */
@@ -220,7 +176,6 @@ function explode(j) {
   j.vx = 0;
   j.vy = 0;
   j.phaseSpeed = 3.5;                // babies flutter fast, then calm down
-  rebuildJellyRopes(j);
 }
 
 function drawSparks(dt) {
@@ -240,127 +195,178 @@ function drawSparks(dt) {
   }
 }
 
-/* ── per-jelly update + draw ──────────────────────────────────────────── */
+/* ── per-jelly update ─────────────────────────────────────────────────── */
+
+// shortest signed turn from angle b to angle a
+const angTo = (a, b) => ((a - b + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+
 function updateJelly(j, t, dt, chaser) {
   const R = bellRadius(j);
 
-  let tx, ty;
+  // ── pick a direction: a jelly commits to a heading, swims it for a few
+  //    strokes, then wanders off somewhere new ──
+  let jetScale = 1;
   if (chaser === j) {
-    tx = pointer.x;
-    ty = pointer.y - R * 1.4;         // hover above the cursor, tentacles reach
+    const dx = pointer.x - j.x, dy = (pointer.y - R * 1.4) - j.y;
+    j.targetHeading = Math.atan2(dy, dx);
+    jetScale = Math.min(1, Math.hypot(dx, dy) / 140);   // ease up on arrival
   } else {
-    // a slow lazy orbit around its resting spot
-    // a wide, slow wander over the whole viewport
-    tx = W * (0.5 + 0.38 * Math.sin(t * (0.055 + j.seed * 0.006) + j.seed));
-    ty = H * (0.5 + 0.34 * Math.sin(t * (0.041 + j.seed * 0.007) + j.seed * 2.3));
+    j.swimTimer -= dt;
+    if (j.swimTimer <= 0) {
+      // mostly random; drifted too far out → head back toward open water
+      const cx = W * 0.5 - j.x, cy = H * 0.45 - j.y;
+      const out = Math.hypot(cx, cy) / (Math.min(W, H) * 0.55);
+      j.targetHeading = out > 0.8
+        ? Math.atan2(cy, cx) + (Math.random() - 0.5) * 0.8
+        : Math.random() * Math.PI * 2;
+      j.swimTimer = 2 + Math.random() * 4;
+    }
   }
+  j.heading += angTo(j.targetHeading, j.heading) * Math.min(1, dt * 0.6);
 
-  // contraction (falling edge of the pulse) provides thrust toward target
-  const thrust = Math.max(0, -Math.cos(j.phase)) * 0.016;
-  const dx = tx - j.x, dy = ty - j.y;
-  const dist = Math.hypot(dx, dy) || 1;
-  j.vx += (dx / dist) * thrust * Math.min(dist, 90);
-  j.vy += (dy / dist) * thrust * Math.min(dist, 90);
+  // ── jet propulsion: thrust only during the stretch — a lunge, then a
+  //    glide through the squash and relax ──
+  const pose = strokePose(j.phase);
+  const jet = pose.push * pose.push * 150 * dt * jetScale;
+  j.vx += Math.cos(j.heading) * jet;
+  j.vy += Math.sin(j.heading) * jet;
 
   // personal space — gentle mutual repulsion keeps the school untangled
   for (const other of jellies) {
     if (other === j) continue;
     const rx = j.x - other.x, ry = j.y - other.y;
     const d = Math.hypot(rx, ry) || 1;
-    const minD = (bellRadius(j) + bellRadius(other)) * 1.6;
+    const minD = (bellRadius(j) + bellRadius(other)) * 1.8;
     if (d < minD) {
       j.vx += (rx / d) * (minD - d) * 0.02;
       j.vy += (ry / d) * (minD - d) * 0.02;
     }
   }
 
-  j.vx *= 0.98;
-  j.vy *= 0.98;
+  // heavy water drag — each lunge visibly dies out before the next one
+  const drag = Math.max(0, 1 - 2.4 * dt);
+  j.vx *= drag;
+  j.vy *= drag;
   j.x += j.vx * dt;
   j.y += j.vy * dt;
+
+  // ── the bell springs toward the pose and overshoots: jelly, not rubber ──
+  const tw = 1 - 0.26 * pose.s + 0.3 * pose.q;
+  const th = 1 + 0.62 * pose.s - 0.42 * pose.q;
+  const K = 150, C = 9;
+  j.swv += ((tw - j.sw) * K - j.swv * C) * dt;
+  j.shv += ((th - j.sh) * K - j.shv * C) * dt;
+  j.sw += j.swv * dt;
+  j.sh += j.shv * dt;
 
   // babies grow slowly back to full size
   if (j.scale < j.fullScale - 0.001) {
     j.scale += (j.fullScale - j.scale) * 0.045 * dt;
   }
 
-  // stay inside the frame
-  const pad = R * 0.9;
-  if (j.x < pad)      { j.x = pad;      if (j.vx < 0) j.vx *= -0.4; }
-  if (j.x > W - pad)  { j.x = W - pad;  if (j.vx > 0) j.vx *= -0.4; }
-  if (j.y < pad * 1.4){ j.y = pad * 1.4;if (j.vy < 0) j.vy *= -0.4; }
-  if (j.y > H - pad)  { j.y = H - pad;  if (j.vy > 0) j.vy *= -0.4; }
+  // stay inside the frame — a bumped wall means it's time to turn around
+  const pad = R * 1.1;
+  if (j.x < pad)      { j.x = pad;      if (j.vx < 0) j.vx *= -0.4; j.swimTimer = 0; }
+  if (j.x > W - pad)  { j.x = W - pad;  if (j.vx > 0) j.vx *= -0.4; j.swimTimer = 0; }
+  if (j.y < pad * 1.4){ j.y = pad * 1.4;if (j.vy < 0) j.vy *= -0.4; j.swimTimer = 0; }
+  if (j.y > H - pad)  { j.y = H - pad;  if (j.vy > 0) j.vy *= -0.4; j.swimTimer = 0; }
 
-  j.phaseSpeed += (1.4 - j.phaseSpeed) * 0.02;   // recover after startle
+  j.phaseSpeed += (1.6 - j.phaseSpeed) * 0.02;   // recover after startle
   j.phase += j.phaseSpeed * dt;
-  j.tilt += (Math.max(-0.5, Math.min(0.5, j.vx * 0.004)) - j.tilt) * 0.05;
+
+  // the bell only leans a little toward its heading — the dome stays roughly
+  // up, so a jelly heading down sinks rather than flipping over
+  const lean = Math.max(-0.35, Math.min(0.35, angTo(j.heading + Math.PI / 2, 0) * 0.3));
+  j.tilt += (lean - j.tilt) * Math.min(1, dt * 0.8);
 }
 
+/* ── per-jelly draw (bell-local space: rim on y = 0, dome toward -y) ──── */
 function drawJelly(j, t) {
   const R = bellRadius(j);
-  const pulse = Math.sin(j.phase);
   const hue = j.hue + 8 * Math.sin(t * 0.3 + j.seed);
-  const bw = R * (1 + 0.10 * pulse);
-  const bh = R * (1.15 - 0.22 * pulse);
+  const boil = reducedMotion ? 0 : Math.floor(t * BOIL_FPS);
+  const bw = R * j.sw;
+  const bh = R * 0.95 * j.sh;
+  const lw = Math.max(1.4, R * 0.032);
+  const jit = R * 0.025;
 
-  // tentacles (behind the bell)
-  for (let i = 0; i < TENTACLES; i++) {
-    const along = i / (TENTACLES - 1);
-    j.tentacles[i].segLen = R * 0.24 * tentacleLenF(along);
-    const ax = j.x + Math.cos(j.tilt) * (along * 2 - 1) * bw * 0.82;
-    const ay = j.y + Math.sin(j.tilt) * (along * 2 - 1) * bw * 0.82 + bh * 0.05;
-    simulateRope(j.tentacles[i], ax, ay, t, i + j.seed, 0.55, (along * 2 - 1) * 0.22);
-    drawRope(j.tentacles[i], 1.4, PALETTE.tentacle(hue, 1), PALETTE.tentacleHalo(hue, 1));
-  }
-  for (let i = 0; i < ORAL_ARMS; i++) {
-    const ax = j.x + ((i / (ORAL_ARMS - 1)) * 2 - 1) * bw * 0.3;
-    j.oralArms[i].segLen = R * 0.17;
-    simulateRope(j.oralArms[i], ax, j.y + bh * 0.1, t, i + 20 + j.seed, 0.6,
-      ((i / (ORAL_ARMS - 1)) * 2 - 1) * 0.22);
-    drawRope(j.oralArms[i], 4, PALETTE.oral(hue, 1), PALETTE.oral(hue, 1));
-  }
-
-  // bell
   ctx.save();
   ctx.translate(j.x, j.y);
   ctx.rotate(j.tilt);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
-  const lobes = 7;
+  // body velocity in bell-local space — the tentacle tips drag behind it
+  const ca = Math.cos(-j.tilt), sa = Math.sin(-j.tilt);
+  const lvx = ca * j.vx - sa * j.vy;
+  const lvy = sa * j.vx + ca * j.vy;
+
+  // ── tentacles: five wavy ink lines, each a beat behind the bell ──
+  for (let i = 0; i < TENTACLES; i++) {
+    const side = (i / (TENTACLES - 1)) * 2 - 1;
+    const lenF = 1.15 + 0.5 * Math.cos(side * Math.PI / 2);   // middle ones longest
+    const pts = [];
+    for (let k = 0; k <= TENTACLE_PTS; k++) {
+      const a = k / TENTACLE_PTS;
+      // follow-through: further down the line lives further in the past
+      const p = strokePose(j.phase - a * 1.1);
+      const L = R * lenF * (1 + 0.15 * p.s - 0.38 * p.q);
+      const spread = 0.22 + 0.5 * p.q - 0.3 * p.s;
+      const wave = Math.sin(t * 2.4 + i * 1.9 - a * 5.5) * R * 0.13 * a * (1 - 0.7 * p.s);
+      let x = side * (bw * 0.62 + spread * a * L) + wave;
+      let y = a * L;
+      // on the squash the tips flick forward and out, like kicked legs
+      x += side * p.q * a * a * L * 0.25;
+      y -= p.q * a * a * L * 0.4;
+      // drag behind the swim
+      x -= lvx * a * a * 0.22;
+      y -= lvy * a * a * 0.22;
+      x += wob(j, i * 31 + k, boil) * jit * (0.4 + a);
+      y += wob(j, i * 31 + k + 17, boil) * jit * (0.4 + a);
+      pts.push([x, y]);
+    }
+    ctx.beginPath();
+    smoothPath(pts, false);
+    ink(hue, lw * 0.85, 0.85);
+  }
+
+  // ── bell: a wobbly dome and a scalloped rim ──
+  const dome = [];
+  const DOME_PTS = 9;
+  for (let k = 0; k <= DOME_PTS; k++) {
+    const a = Math.PI * (k / DOME_PTS);
+    const edge = k === 0 || k === DOME_PTS ? 0.4 : 1;
+    dome.push([
+      -Math.cos(a) * bw + wob(j, 200 + k, boil) * jit * edge,
+      -Math.pow(Math.sin(a), 0.75) * bh + wob(j, 220 + k, boil) * jit,
+    ]);
+  }
   ctx.beginPath();
-  ctx.moveTo(-bw, 0);
-  ctx.bezierCurveTo(-bw * 0.98, -bh * 1.25, bw * 0.98, -bh * 1.25, bw, 0);
-  for (let i = 1; i <= lobes; i++) {
-    const x1 = bw - (2 * bw) * (i - 0.5) / lobes;
-    const x2 = bw - (2 * bw) * i / lobes;
-    const lift = R * 0.07 + R * 0.04 * Math.sin(j.phase * 2 + i * 1.3);
-    ctx.quadraticCurveTo(x1, lift, x2, R * 0.02);
+  smoothPath(dome, false);
+  const scallops = 4;
+  for (let k = 1; k <= scallops; k++) {
+    const x1 = bw - (2 * bw) * (k - 0.5) / scallops;
+    const x2 = bw - (2 * bw) * k / scallops;
+    const sag = R * (0.13 + 0.05 * Math.sin(j.phase * 2 + k * 1.7)) + wob(j, 240 + k, boil) * jit;
+    ctx.quadraticCurveTo(x1, sag, x2, wob(j, 250 + k, boil) * jit * 0.5);
   }
   ctx.closePath();
-
-  const grad = ctx.createRadialGradient(0, -bh * 0.4, bw * 0.1, 0, -bh * 0.25, bw * 1.35);
-  grad.addColorStop(0,    PALETTE.bellCore(hue, 0.32));
-  grad.addColorStop(0.45, PALETTE.bellMid(hue, 0.14));
-  grad.addColorStop(1,    PALETTE.bellEdge(hue, 0.02));
-  ctx.fillStyle = grad;
+  ctx.fillStyle = PALETTE.fill(hue, 0.07);
   ctx.fill();
+  ink(hue, lw, 1);
 
-  // rim — a wide soft pass under a fine bright one
-  ctx.strokeStyle = PALETTE.rim(hue, 0.10);
-  ctx.lineWidth = 9;
-  ctx.stroke();
-  ctx.strokeStyle = PALETTE.rim(hue, 0.38);
-  ctx.lineWidth = 1.4;
-  ctx.stroke();
+  // a shine stroke on the dome, like the doodles' belly line
+  ctx.beginPath();
+  ctx.moveTo(-bw * 0.62, -bh * 0.42);
+  ctx.quadraticCurveTo(-bw * 0.58 + wob(j, 260, boil) * jit, -bh * 0.82, -bw * 0.22, -bh * 0.9);
+  ink(hue, lw * 0.8, 0.55);
 
-  // inner organs — four rings
-  for (let i = 0; i < 4; i++) {
-    const gx = Math.cos((i / 4) * Math.PI * 2 + 0.6) * bw * 0.3;
-    const gy = -bh * 0.45 + Math.sin((i / 4) * Math.PI * 2 + 0.6) * bh * 0.18;
-    ctx.strokeStyle = PALETTE.organ(hue, 0.30);
-    ctx.lineWidth = 2;
+  // two little eyes, like the team's avatars
+  for (const ex of [-0.27, 0.27]) {
     ctx.beginPath();
-    ctx.arc(gx, gy, bw * 0.11 * (1 + 0.08 * pulse), 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.arc(ex * bw + wob(j, 270 + ex * 10, boil) * jit * 0.4, -bh * 0.38,
+      R * 0.085, 0, Math.PI * 2);
+    ink(hue, lw * 0.85, 0.9);
   }
 
   ctx.restore();
@@ -392,14 +398,14 @@ function drawFrame(t, dt) {
 
   for (const j of jellies) updateJelly(j, t, dt, chaser);
 
-  // ink settles on paper — the whole school is drawn multiplied
+  // light on a dark sea — overlapping lines brighten
   ctx.globalCompositeOperation = "lighter";
   for (const j of jellies) drawJelly(j, t);
   drawSparks(dt);
   ctx.globalCompositeOperation = "source-over";
 }
 
-/* ── run loop: only while the hero is actually on screen ──────────────── */
+/* ── run loop ─────────────────────────────────────────────────────────── */
 let running = false;
 let rafId = 0;
 let last = performance.now();
@@ -449,7 +455,7 @@ if (canvas && ctx) {
     const j = nearestJelly(p.x, p.y);
     const d = Math.hypot(j.x - p.x, j.y - p.y);
     if (d < bellRadius(j) * 2.4) {
-      j.phaseSpeed = 6;                              // startled — pulse burst
+      j.phaseSpeed = 6;                              // startled — stroke burst
       j.vx += ((j.x - p.x) / (d || 1)) * 300;        // poke bounces it away
       j.vy += ((j.y - p.y) / (d || 1)) * 300;
       const now = performance.now();
@@ -472,7 +478,7 @@ if (canvas && ctx) {
     // settle the school, then paint exactly one frame and stop
     for (let i = 0; i < 120; i++) drawFrame(i * 0.05, 0.05);
   } else {
-    start();   // the canvas is always on screen now; the tab check below is the guard
+    start();   // the canvas is always on screen; the tab check below is the guard
   }
 
   // don't burn frames in a background tab either

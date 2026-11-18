@@ -137,6 +137,10 @@ a.link:hover { color: var(--accent-hover); border-bottom-color: currentColor; }
 
 .member__avatar { width: clamp(3.5rem, 10vw, 4.5rem); }
 
+/* the king stands in the middle, a crown's height above the court */
+.member--king .member__avatar { width: clamp(4rem, 11.5vw, 5.2rem); }
+.member--king .member__name { font-size: 1.15rem; }
+
 .member__name {
   margin: 0.25rem 0 0;
   font-size: 1rem;
@@ -150,7 +154,24 @@ a.link:hover { color: var(--accent-hover); border-bottom-color: currentColor; }
   color: var(--text-tertiary);
 }
 
+.team__background { text-align: center; }
 .team__background p { margin: 0; color: var(--text-secondary); }
+.team__background p + p { margin-top: 0.6rem; }
+
+.bg__lead {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.team__background .bg__lead { color: var(--text); }
+.team__background .bg__names { margin-top: 0.2rem; color: var(--text); }
+.team__background .bg__skills {
+  margin-top: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+.team__background .bg__skills + p { margin-top: 1rem; }
 
 /* ── Scene ──────────────────────────────────────────────────────────────── */
 .scene { text-align: center; color: var(--text-secondary); }
@@ -164,21 +185,125 @@ a.link:hover { color: var(--accent-hover); border-bottom-color: currentColor; }
   color: var(--text-tertiary);
 }
 
-/* ── Products ───────────────────────────────────────────────────────────── */
-.prods {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-}
-@media (max-width: 40rem) {
-  .prods { grid-template-columns: 1fr; }
+/* ── Products: two jellyfish, one brain ─────────────────────────────────
+   Each product is a jelly bell — dome on top, body squared enough to
+   hold its text — and both trail tentacles down into the shared engine. */
+.venn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.prod:hover { border-color: var(--border-strong); }
+.venn__pair {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.venn__bell {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 19.5rem;
+  padding: 3rem 1.8rem 2rem;
+  background: rgba(22, 28, 73, 0.72);
+  border: 1px solid var(--border-strong);
+  border-radius: 10rem 10rem 1.6rem 1.6rem / 6.5rem 6.5rem 1.4rem 1.4rem;
+  transition: border-color 0.25s ease;
+}
+
+/* each jelly keeps its owner's colour; the engine keeps the site's teal */
+.venn__bell--left { border-color: rgba(74, 140, 247, 0.45); }
+.venn__bell--left:hover { border-color: rgba(74, 140, 247, 0.9); }
+.venn__bell--left .prod__kind { color: #7FA9F9; border-color: rgba(74, 140, 247, 0.5); }
+.venn__bell--left .prod__points li::marker { color: #7FA9F9; }
+
+.venn__bell--right { border-color: rgba(240, 85, 155, 0.4); }
+.venn__bell--right:hover { border-color: rgba(240, 85, 155, 0.85); }
+.venn__bell--right .prod__kind { color: #F687BD; border-color: rgba(240, 85, 155, 0.45); }
+.venn__bell--right .prod__points li::marker { color: #F687BD; }
+
+.venn__bell .prod__points { font-size: 0.9rem; gap: 0.5rem; }
+.venn__bell .prod__title  { font-size: 1.3rem; }
+
+.venn__tendrils {
+  display: block;
+  width: 100%;
+  max-width: 40rem;
+  height: auto;
+  margin-top: -0.4rem;
+  pointer-events: none;
+  transform-origin: 50% 0;
+  animation: tendril-sway 8s ease-in-out infinite alternate;
+}
+
+@keyframes tendril-sway {
+  from { transform: rotate(-1.1deg); }
+  to   { transform: rotate(1.1deg); }
+}
+
+.venn__core {
+  position: relative;
+  z-index: 1;
+  margin-top: -1.1rem;
+  max-width: 34rem;
+  padding: 1.1rem 1.6rem 1.2rem;
+  text-align: center;
+  background: rgba(22, 28, 73, 0.9);
+  border: 1px solid rgba(64, 224, 208, 0.45);
+  border-radius: 1.4rem;
+  box-shadow: 0 0 2.6rem rgba(64, 224, 208, 0.14);
+  transition: border-color 0.25s ease;
+}
+.venn__core:hover { border-color: rgba(64, 224, 208, 0.85); }
+
+.venn__core ul {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 0.3rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.venn__core li { white-space: nowrap; }
+.venn__core li:not(:last-child)::after {
+  content: "·";
+  margin: 0 0.55rem;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+/* narrow water: the jellies stack, tentacles tuck away */
+@media (max-width: 46rem) {
+  .venn__pair { flex-direction: column; align-items: stretch; }
+  .venn__bell {
+    max-width: none;
+    padding: 2.4rem clamp(1.25rem, 4vw, 2rem) 1.6rem;
+    border-radius: 50% 50% 1.2rem 1.2rem / 3.2rem 3.2rem 1.2rem 1.2rem;
+  }
+  .venn__tendrils { display: none; }
+  .venn__core { margin-top: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .venn__tendrils { animation: none; }
+}
 
 .prod__kind {
+  display: inline-block;
+  padding: 0.18rem 0.65rem 0.22rem;
+  border: 1px solid rgba(64, 224, 208, 0.5);
+  border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);

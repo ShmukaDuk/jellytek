@@ -41,17 +41,6 @@
   <section class="team" aria-label="Team">
     <div class="team__row">
       <article class="member">
-        <svg class="member__avatar" viewBox="0 0 72 72" role="img" aria-label="johnny's jellyfish">
-          <path d="M10 38c0-14 12-24 26-24s26 10 26 24c0 3-2 4-4 4H14c-2 0-4-1-4-4Z" fill="#4A8CF7" fill-opacity="0.22" stroke="#4A8CF7" stroke-width="1.6"/>
-          <path d="M18 42c0 8-4 12-4 18M28 42c0 10-3 14-3 20M36 42c0 9 2 13 2 20M44 42c0 10 3 14 3 20M54 42c0 8 4 12 4 18"
-                fill="none" stroke="#4A8CF7" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
-          <circle cx="29" cy="30" r="3.4" fill="none" stroke="#4A8CF7" stroke-width="1.4"/>
-          <circle cx="43" cy="30" r="3.4" fill="none" stroke="#4A8CF7" stroke-width="1.4"/>
-        </svg>
-        <h2 class="member__name">johnny</h2>
-        <p class="member__role">his grace</p>
-      </article>
-      <article class="member">
         <svg class="member__avatar" viewBox="0 0 72 72" role="img" aria-label="tess's jellyfish">
           <path d="M10 38c0-14 12-24 26-24s26 10 26 24c0 3-2 4-4 4H14c-2 0-4-1-4-4Z" fill="#F0559B" fill-opacity="0.22" stroke="#F0559B" stroke-width="1.6"/>
           <path d="M18 42c0 8-4 12-4 18M28 42c0 10-3 14-3 20M36 42c0 9 2 13 2 20M44 42c0 10 3 14 3 20M54 42c0 8 4 12 4 18"
@@ -61,6 +50,17 @@
         </svg>
         <h2 class="member__name">tess</h2>
         <p class="member__role">mother of pixels</p>
+      </article>
+      <article class="member member--king">
+        <svg class="member__avatar" viewBox="0 0 72 72" role="img" aria-label="johnny's jellyfish">
+          <path d="M10 38c0-14 12-24 26-24s26 10 26 24c0 3-2 4-4 4H14c-2 0-4-1-4-4Z" fill="#4A8CF7" fill-opacity="0.22" stroke="#4A8CF7" stroke-width="1.6"/>
+          <path d="M18 42c0 8-4 12-4 18M28 42c0 10-3 14-3 20M36 42c0 9 2 13 2 20M44 42c0 10 3 14 3 20M54 42c0 8 4 12 4 18"
+                fill="none" stroke="#4A8CF7" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+          <circle cx="29" cy="30" r="3.4" fill="none" stroke="#4A8CF7" stroke-width="1.4"/>
+          <circle cx="43" cy="30" r="3.4" fill="none" stroke="#4A8CF7" stroke-width="1.4"/>
+        </svg>
+        <h2 class="member__name">johnny</h2>
+        <p class="member__role">his grace</p>
       </article>
       <article class="member">
         <svg class="member__avatar" viewBox="0 0 72 72" role="img" aria-label="james's jellyfish">
@@ -76,13 +76,12 @@
     </div>
 
     <div class="panel team__background">
+      <p class="bg__lead">small gang — 3 homies</p>
+      <p class="bg__names">Johnny · Tess · Jimmi</p>
+      <p class="bg__skills">Embedded AI / UI UX / TCG Marketplace</p>
       <p>
-        Three people. We came out of automotive AI — cameras that have to work
-        on every frame, in bad light, on a tiny power budget, without phoning
-        home. We pointed that discipline at trading cards: our models recognise
-        the card on the device in front of you, with no cloud round-trip.
-        Johnny builds the engine, Tess designs the apps, James gets them in
-        front of people.
+        happy to create the best solution on the market<br>
+        happy to make it run faster than anyone else
       </p>
     </div>
   </section>
@@ -191,32 +190,67 @@
     <p class="scene__caption">point a camera at a card — we tell you which card, and what it's worth</p>
   </div>
 
-  <!-- ═══ The two products ══════════════════════════════════════════════ -->
-  <section class="prods" aria-label="Products">
+  <!-- ═══ The two products, one engine ══════════════════════════════════
+       Two jellyfish, one brain: each product is a jelly bell, and both
+       trail their tentacles down into the shared engine. -->
+  <section class="venn" aria-label="Products">
 
-    <article class="panel prod">
-      <span class="prod__kind">mobile app</span>
-      <h2 class="prod__title">Cards &amp; Friends</h2>
-      <ul class="prod__points">
-        <li>free</li>
-        <li>works offline — your collection lives on your phone and syncs when you're back</li>
-        <li>point the camera at a card and it's recognised on-device; no photo is uploaded</li>
-        <li>six card games, 1,300+ sets — binders, prices, and chat with your friends</li>
-        <li>Android &amp; iOS</li>
-      </ul>
-    </article>
+    <div class="venn__pair">
+      <article class="venn__bell venn__bell--left">
+        <span class="prod__kind">mobile app</span>
+        <h2 class="prod__title">Cards &amp; Friends</h2>
+        <ul class="prod__points">
+          <li>free forever — no ads, no paywalls</li>
+          <li>no servers, no LLM bills — that's how</li>
+          <li>offline — conventions, planes, overseas</li>
+          <li>six games, 1,300+ sets</li>
+          <li>binders, prices, chat with friends</li>
+          <li>Android &amp; iOS</li>
+        </ul>
+      </article>
 
-    <article class="panel prod">
-      <span class="prod__kind">streamer plugin</span>
-      <h2 class="prod__title">Cards &amp; Chat</h2>
-      <ul class="prod__points">
-        <li>paid — subscription</li>
-        <li>customisable — drag-and-drop layout editor for your own overlay</li>
-        <li>recognises every card you pull on stream and tags it with a live price</li>
-        <li>break boards, order queue, and an end-of-stream recap with packing lists</li>
-        <li>OBS-ready · Linux &amp; macOS</li>
+      <article class="venn__bell venn__bell--right">
+        <span class="prod__kind">streamer plugin</span>
+        <h2 class="prod__title">Cards &amp; Chat</h2>
+        <ul class="prod__points">
+          <li>paid — subscription</li>
+          <li>your own overlay, drag-and-drop</li>
+          <li>live prices on every pull</li>
+          <li>break boards &amp; order queue</li>
+          <li>stream recap with packing lists</li>
+          <li>OBS-ready · Linux &amp; macOS</li>
+        </ul>
+      </article>
+    </div>
+
+    <!-- both jellies trail down into the engine -->
+    <svg class="venn__tendrils" viewBox="0 0 640 104" fill="none" aria-hidden="true">
+      <g stroke="#4A8CF7" stroke-width="2" stroke-linecap="round">
+        <path d="M100 4C110 42 150 60 196 72S268 92 292 100" opacity="0.5"/>
+        <path d="M140 6C148 34 180 52 216 64S276 86 298 96" opacity="0.36"/>
+        <path d="M178 8C184 30 210 46 240 58S288 82 306 92" opacity="0.55"/>
+        <path d="M216 6C220 26 238 40 262 52S300 74 312 84" opacity="0.4"/>
+        <path d="M252 8C254 24 266 34 282 44S310 62 318 72" opacity="0.45"/>
+      </g>
+      <g stroke="#F0559B" stroke-width="2" stroke-linecap="round">
+        <path d="M540 4C530 42 490 60 444 72S372 92 348 100" opacity="0.5"/>
+        <path d="M500 6C492 34 460 52 424 64S364 86 342 96" opacity="0.36"/>
+        <path d="M462 8C456 30 430 46 400 58S352 82 334 92" opacity="0.55"/>
+        <path d="M424 6C420 26 402 40 378 52S340 74 328 84" opacity="0.4"/>
+        <path d="M388 8C386 24 374 34 358 44S330 62 322 72" opacity="0.45"/>
+      </g>
+    </svg>
+
+    <div class="venn__core">
+      <span class="prod__kind">ai engine</span>
+      <ul>
+        <li>on-device, no cloud</li>
+        <li>sub-30 ms a card, x86 or ARM</li>
+        <li>swallows any card database</li>
+        <li>JP &amp; ENG cards, JP &amp; ENG prices</li>
+        <li>runs on anything</li>
       </ul>
-    </article>
+    </div>
 
   </section>
 

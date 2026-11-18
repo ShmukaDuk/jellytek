@@ -1,0 +1,8 @@
+/* OP Snap's accents, layered over the shared project chrome.
+   Lives in its own file rather than an inline <style> because the page's CSP
+   is style-src 'self' — inline blocks are dropped. */
+
+:root {
+  --accent: oklch(70% 0.19 22);    /* coral — the app's primary */
+  --accent-2: oklch(80% 0.14 82);  /* gold — its chrome and rope */
+}

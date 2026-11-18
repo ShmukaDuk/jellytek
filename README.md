@@ -9,7 +9,7 @@ Fastly CDN.
 
 ```
 /                 Name & logo → the three of us → one picture → the two
-                  products (Cards & Friends, TCG Stream Tool) → contact
+                  products (Cards & Friends, Cards & Chat) → contact
 /privacy.html     Cards and Friends privacy policy (linked from the app
                   stores — keep this URL stable)
 /projects/        standalone project pages (own CSS, independent of the site)

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OP Snap — Full App UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Fredoka:wght@500;600;700&family=Baloo+2:wght@600;700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#FBE0EA;--sky:#F7D3DF;--sky-deep:#F2C0D1;--map-line:#E7A6C0;
+    --wood-hi:#CE9457;--wood:#B0702F;--wood-lo:#7A4620;--wood-edge:#4A2A13;--rope:#E0B072;
+    --coral-hi:#FF6E7E;--coral:#F1586B;--coral-lo:#D23C50;--coral-edge:#A82E40;
+    --blue-hi:#5C93E6;--blue:#3E7BD1;--blue-lo:#2A5CA6;--blue-edge:#1E4480;
+    --gold-hi:#F8D264;--gold:#E9AE3C;--gold-lo:#B07E24;--gold-edge:#7A5416;
+    --navy-hi:#26375A;--navy:#1B2A46;--navy-lo:#111B30;--slot-line:#35486E;
+    --ink:#16121C;--ink-lo:#0C0910;
+    --green:#4FC46A;--green-track:#123A22;--magenta:#FF4D8D;--amber:#FFC24B;
+    --rank-gold:#F5C542;--rank-silver:#C9D2DA;--rank-bronze:#C77B3C;
+    --cream:#FFF3DC;--on-dark:#FFFFFF;--on-dark-dim:#C7CBD6;--on-light:#3A2414;
+    --ground-soft:0 10px 18px rgba(20,10,30,.18);
+    --sheen-top:inset 0 2px 0 rgba(255,255,255,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Nunito',sans-serif;color:var(--on-light);
+    background:radial-gradient(1200px 600px at 50% -5%,#3a2b46,#241a2e 45%,#160f1d);
+    padding:36px 18px 80px;}
+  .page{max-width:1300px;margin:0 auto}
+  .masthead{text-align:center;margin-bottom:10px}
+  .masthead h1{font-family:'Luckiest Guy',cursive;font-size:46px;margin:0;line-height:1}
+  .masthead h1 .op{color:var(--blue);-webkit-text-stroke:3px var(--coral-edge);paint-order:stroke fill}
+  .masthead h1 .snap{color:var(--coral);-webkit-text-stroke:2px var(--cream);paint-order:stroke fill}
+  .masthead p{color:#e9d6e6;font-weight:800;opacity:.8;margin:8px 0 0}
+  .grouphead{color:var(--cream);font-family:'Fredoka',sans-serif;font-weight:700;font-size:22px;
+    margin:40px 0 4px;-webkit-text-stroke:1px var(--wood-edge);paint-order:stroke fill}
+  .groupsub{color:#d9c6d6;font-weight:800;opacity:.7;font-size:13px;margin:0 0 20px}
+  .gallery{display:flex;flex-wrap:wrap;gap:34px;justify-content:center}
+
+  /* PHONE FRAME */
+  .device{width:300px}
+  .scrlabel{color:var(--cream);font-weight:900;font-size:13.5px;margin:0 0 4px;text-align:center;letter-spacing:.02em}
+  .scrnote{color:#cdbccb;font-weight:700;font-size:11px;opacity:.75;margin:0 0 12px;text-align:center;line-height:1.4;min-height:28px}
+  .screen{position:relative;height:648px;border-radius:34px;padding:0;overflow:hidden;
+    background:linear-gradient(180deg,var(--sky-top),var(--sky) 42%,var(--sky-deep));
+    border:7px solid var(--gold);box-shadow:inset 0 0 0 2px var(--gold-edge),inset 0 0 0 3px var(--gold-hi),var(--ground-soft),0 0 0 1px #000;}
+  .screen::before{/* motif */content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:
+      radial-gradient(60px 26px at 22% 12%,var(--cloud,#fff) 60%,transparent 62%),
+      radial-gradient(48px 20px at 78% 20%,#fff 60%,transparent 62%),
+      radial-gradient(40px 18px at 60% 8%,#fff 60%,transparent 62%);
+    opacity:.35}
+  .sc{position:absolute;inset:0;display:flex;flex-direction:column;padding:14px 14px 0}
+  .body{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding-bottom:8px}
+
+  /* TOP CONTEXT BAR */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  .wtab{display:inline-flex;gap:2px;background:linear-gradient(180deg,var(--wood-hi),var(--wood));
+    border:2px solid var(--wood-edge);border-radius:999px;padding:4px 5px;box-shadow:0 3px 0 var(--wood-lo)}
+  .wtab span{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#ffd8c2);
+    border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:16px;position:relative;box-shadow:0 2px 0 var(--gold-lo)}
+  .avatar .dot{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:var(--magenta);border:2px solid #fff}
+  .xbtn{width:34px;height:34px;border-radius:50%;background:var(--coral);border:2px solid var(--coral-edge);
+    color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--coral-lo);font-size:16px}
+
+  /* SIGNBOARD */
+  .signrow{display:flex;justify-content:center;margin:10px 0 4px}
+  .sign{position:relative;display:inline-flex;align-items:center;gap:8px;
+    background:linear-gradient(180deg,var(--wood-hi),var(--wood) 60%,var(--wood-lo));
+    border:3px solid var(--wood-edge);border-radius:16px;padding:12px 24px;box-shadow:0 6px 0 var(--wood-lo),var(--ground-soft)}
+  .sign .tt{font-family:'Fredoka',sans-serif;font-weight:700;color:var(--coral);font-size:22px;
+    -webkit-text-stroke:2px var(--cream);paint-order:stroke fill;text-shadow:0 2px 0 var(--wood-edge);letter-spacing:.5px}
+  .sign::after{content:"★";position:absolute;top:-9px;left:-7px;color:var(--amber);font-size:17px;filter:drop-shadow(0 1px 0 var(--wood-edge))}
+  .peek{position:absolute;top:-25px;left:50%;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#fff,#ffd8c2);border:3px solid var(--wood-edge);
+    display:flex;align-items:center;justify-content:center;font-size:20px;z-index:2}
+
+  /* logo lockup (home) */
+  .logo{font-family:'Luckiest Guy',cursive;font-size:34px;text-align:center;line-height:1;margin:6px 0}
+  .logo .op{color:var(--blue);-webkit-text-stroke:2.5px var(--coral-edge);paint-order:stroke fill}
+  .logo .snap{color:var(--coral);-webkit-text-stroke:2px var(--cream);paint-order:stroke fill}
+
+  /* BUTTONS */
+  .btn{font-family:'Nunito';font-weight:900;text-transform:uppercase;letter-spacing:.04em;font-size:12px;
+    border:none;color:#fff;padding:12px 18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%}
+  .btn.coral{background:linear-gradient(180deg,var(--coral-hi),var(--coral));box-shadow:0 5px 0 var(--coral-lo),var(--sheen-top);outline:2px solid var(--coral-edge);outline-offset:-2px}
+  .btn.blue{background:linear-gradient(180deg,var(--blue-hi),var(--blue));box-shadow:0 5px 0 var(--blue-lo),var(--sheen-top);outline:2px solid var(--blue-edge);outline-offset:-2px}
+  .btn.gold{background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#4a2e00;box-shadow:0 5px 0 var(--gold-lo),var(--sheen-top);outline:2px solid var(--gold-edge);outline-offset:-2px}
+  .btn.ghost{background:transparent;color:var(--coral);border:2px solid var(--coral);box-shadow:none}
+  .btn.sm{width:auto;padding:9px 14px;font-size:11px}
+
+  /* TOGGLE + PILLS */
+  .toggle{display:flex;background:var(--navy);border-radius:999px;padding:5px;gap:4px;border:2px solid var(--slot-line)}
+  .toggle .seg{flex:1;text-align:center;padding:8px 6px;border-radius:999px;font-weight:900;font-size:12px;color:var(--on-dark-dim);display:flex;gap:5px;align-items:center;justify-content:center}
+  .toggle .seg.on{background:linear-gradient(180deg,var(--coral-hi),var(--coral));color:#fff;box-shadow:0 3px 0 var(--coral-lo),var(--sheen-top)}
+  .pills{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;padding:8px 12px;border-radius:999px;font-weight:800;font-size:11.5px}
+  .pill .car{opacity:.6;font-size:10px}
+
+  /* SEARCH BAR */
+  .searchbar{display:flex;align-items:center;gap:8px;background:var(--ink);border:2px solid var(--slot-line);border-radius:999px;padding:11px 15px;color:var(--on-dark-dim);font-weight:800;font-size:13px}
+
+  /* CARD ART */
+  .cart{aspect-ratio:3/4;border-radius:10px;position:relative;overflow:hidden;border:2px solid var(--slot-line);
+    display:flex;align-items:flex-end;justify-content:center;box-shadow:inset 0 3px 8px rgba(0,0,0,.35)}
+  .cart .em{position:absolute;top:8px;left:0;right:0;text-align:center;font-size:26px}
+  .cart .cc{width:100%;text-align:center;font-family:'Baloo 2';font-weight:800;font-size:9px;color:#fff;background:rgba(0,0,0,.45);padding:2px 0;letter-spacing:.03em}
+  .cart.c1{background:linear-gradient(160deg,#b23b4e,#e0a24a)}
+  .cart.c2{background:linear-gradient(160deg,#2f5aa8,#4bb3c9)}
+  .cart.c3{background:linear-gradient(160deg,#2b7d5a,#7ad08e)}
+  .cart.c4{background:linear-gradient(160deg,#7a3f9e,#d24d8d)}
+  .cart.c5{background:linear-gradient(160deg,#c98a2b,#f5c542)}
+  .cart.c6{background:linear-gradient(160deg,#39485e,#6b7f9e)}
+  .cart.rare{border:2px solid var(--blue);box-shadow:inset 0 3px 8px rgba(0,0,0,.35),0 0 0 1px var(--blue-edge)}
+  .cart.foil{border:2px solid var(--gold-hi);box-shadow:inset 0 3px 8px rgba(0,0,0,.35),0 0 0 1px var(--gold-edge),var(--sheen-top)}
+  .cart.empty{background:var(--navy-lo);border:1.5px dashed var(--slot-line);box-shadow:inset 0 3px 8px rgba(0,0,0,.4)}
+
+  /* NAVY PANELS */
+  .navy{background:linear-gradient(180deg,var(--navy),var(--navy-lo));border:2px solid var(--slot-line);border-radius:16px;color:var(--on-dark);box-shadow:0 4px 0 var(--navy-lo)}
+  .pad{padding:12px}
+
+  /* SET GRID / BINDER */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .settile{background:#fff;border:2px solid var(--wood-edge);border-radius:14px;padding:6px;box-shadow:0 3px 0 rgba(74,42,19,.4)}
+  .settile .cov{aspect-ratio:3/4;border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-size:22px}
+  .settile .code{display:block;text-align:center;background:var(--coral);color:#fff;font-weight:900;font-size:8px;border-radius:8px;padding:3px 3px;margin:5px 2px 3px;letter-spacing:0;line-height:1.15;min-height:20px;display:flex;align-items:center;justify-content:center}
+  .prog{height:8px;border-radius:999px;background:var(--green-track);overflow:hidden;border:1px solid rgba(0,0,0,.25);margin:0 2px 2px}
+  .prog>i{display:block;height:100%;background:linear-gradient(180deg,#79e08e,var(--green))}
+  .binder{position:relative;background:linear-gradient(180deg,var(--navy),var(--navy-lo));border-radius:16px;padding:16px 14px;border:3px solid var(--wood-edge);box-shadow:var(--ground-soft)}
+  .binder .brk{position:absolute;width:14px;height:14px;border:3px solid var(--gold)}
+  .binder .brk.tl{top:7px;left:7px;border-right:0;border-bottom:0;border-radius:6px 0 0 0}
+  .binder .brk.tr{top:7px;right:7px;border-left:0;border-bottom:0;border-radius:0 6px 0 0}
+  .binder .brk.bl{bottom:7px;left:7px;border-right:0;border-top:0;border-radius:0 0 0 6px}
+  .binder .brk.br{bottom:7px;right:7px;border-left:0;border-top:0;border-radius:0 0 6px 0}
+
+  /* STAT BAR + NAV BAR */
+  .statbar{display:flex;gap:10px;background:linear-gradient(180deg,var(--ink),var(--ink-lo));padding:11px;border-radius:16px 16px 0 0;margin:0 -14px}
+  .stat{flex:1;background:var(--ink);border:2px solid var(--gold);border-radius:13px;padding:8px 11px;box-shadow:inset 0 0 0 1px var(--gold-hi),0 3px 0 var(--gold-lo)}
+  .stat .lab{font-size:8.5px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--on-dark-dim)}
+  .stat .val{font-family:'Baloo 2';font-weight:800;font-size:21px;color:var(--magenta);line-height:1.1}
+  .stat.lv .val{color:var(--gold-hi);font-size:18px}
+  .navbar{display:flex;justify-content:space-around;align-items:center;background:linear-gradient(180deg,var(--ink),var(--ink-lo));padding:10px 6px;border-radius:18px 18px 0 0;margin:0 -14px}
+  .nav{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--on-dark-dim);font-size:18px;font-weight:900}
+  .nav small{font-size:8px;letter-spacing:.03em;text-transform:uppercase}
+  .nav.on{color:#fff}
+  .nav.on .ic{background:linear-gradient(180deg,var(--coral-hi),var(--coral));border:2px solid var(--coral-edge);box-shadow:0 3px 0 var(--coral-lo);color:#fff}
+  .nav .ic{width:40px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+
+  /* misc content bits */
+  .h2{font-family:'Baloo 2';font-weight:800;font-size:17px;color:var(--on-light);margin:0}
+  .muted{color:var(--on-dark-dim)}
+  .lrow{display:flex;align-items:center;gap:10px;background:var(--navy);border:2px solid var(--slot-line);border-radius:13px;padding:9px 11px;color:#fff;box-shadow:0 3px 0 var(--navy-lo)}
+  .lrow.self{outline:2px solid var(--gold);outline-offset:-2px}
+  .rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;background:var(--slot-line);flex:none}
+  .rank.g{background:var(--rank-gold);color:#3a2a00}.rank.s{background:var(--rank-silver);color:#2a2f36}.rank.b{background:var(--rank-bronze)}
+  .av2{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#ffd8c2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+  .nm{font-weight:900;font-size:13px}
+  .sub2{font-size:10.5px;color:var(--on-dark-dim);font-weight:700}
+  .lvpill{background:var(--ink);border:1.5px solid var(--gold);border-radius:999px;padding:3px 8px;font-size:10px;font-weight:900;color:var(--gold-hi)}
+  .schip{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;font-weight:900;font-size:10.5px;color:#fff}
+  .schip.new{background:var(--coral)}.schip.add{background:var(--green)}.schip.gold{background:var(--gold);color:#3a2a00}.schip.blue{background:var(--blue)}.schip.trust{background:var(--green)}
+  .stars{color:var(--amber);font-size:13px;letter-spacing:1px}
+  .goldframe{background:var(--ink);border:2px solid var(--gold);border-radius:14px;box-shadow:inset 0 0 0 1px var(--gold-hi),0 3px 0 var(--gold-lo);padding:10px 13px;color:#fff}
+  .bignum{font-family:'Baloo 2';font-weight:800;color:var(--gold-hi);font-size:24px;line-height:1}
+  .bubble{max-width:78%;padding:9px 12px;border-radius:14px;font-size:12.5px;font-weight:700;line-height:1.35}
+  .bubble.them{background:#fff;border:2px solid var(--wood-edge);color:var(--on-light);align-self:flex-start;border-bottom-left-radius:4px}
+  .bubble.me{background:linear-gradient(180deg,var(--coral-hi),var(--coral));color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+  .maptop{height:120px;border-radius:14px;position:relative;overflow:hidden;border:2px solid var(--wood-edge);
+    background:linear-gradient(180deg,#bfe0c9,#a7d0e0);box-shadow:inset 0 2px 6px rgba(0,0,0,.15)}
+  .pin{position:absolute;font-size:20px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+  .scrollhint{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:60px;border-radius:999px;background:rgba(0,0,0,.12)}
+  .cap{font-size:10.5px;font-weight:800;color:var(--on-light);opacity:.7}
+  .divider{height:2px;background:rgba(255,255,255,.08);border-radius:2px;margin:2px 0}
+
+  /* back to the project page — sits above the gallery, out of the way */
+  .backbar{position:fixed;top:14px;left:14px;z-index:50}
+  .backbar a{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;
+    text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:11.5px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--cream);
+    background:rgba(20,10,30,.55);border:1px solid rgba(255,243,220,.22);
+    backdrop-filter:blur(10px);transition:border-color .2s,color .2s}
+  .backbar a:hover{color:#fff;border-color:var(--gold)}
+  @media (max-width:900px){.backbar{position:static;margin:0 0 18px}}
+</style>
+</head>
+<body>
+<div class="backbar"><a href="./">← OP Snap</a></div>
+<div class="page">
+  <div class="masthead">
+    <h1><span class="op">OP</span> <span class="snap">SNAP</span></h1>
+    <p>Full App UI — 16 screens, built to the OP Snap design system 🏴‍☠️</p>
+  </div>
+
+  <p class="grouphead">⚓ Core Collecting</p>
+  <p class="groupsub">The v1 heart of the app — scan a card, see its value, file it into your sets.</p>
+  <div class="gallery">
+
+    <!-- 1 SIGN IN -->
+    <div class="device">
+      <p class="scrlabel">1 · Sign In</p>
+      <p class="scrnote">First impression — logo lockup + the Den Den Mushi mascot.</p>
+      <div class="screen"><div class="sc">
+        <div class="body" style="align-items:center;justify-content:center;text-align:center;gap:18px">
+          <div class="logo" style="font-size:44px"><span class="op">OP</span> <span class="snap">SNAP</span></div>
+          <div style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 42% 35%,#fff,#ffd8c2);border:4px solid var(--wood-edge);display:flex;align-items:center;justify-content:center;font-size:58px;box-shadow:var(--ground-soft)">🐌</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--on-light)">Snap it. Collect it. Trade it.</div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:11px;margin-top:6px">
+            <span class="btn coral"> Continue with Apple</span>
+            <span class="btn blue"> Continue with Google</span>
+            <span class="btn ghost">Use email instead</span>
+          </div>
+          <div class="cap" style="margin-top:4px">By joining you agree to the Pirate Code (terms).</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 2 HOME / SCAN -->
+    <div class="device">
+      <p class="scrlabel">2 · Home — Scan</p>
+      <p class="scrnote">Archetype E. Home is the only screen using the logo instead of a signboard.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar">
+          <div class="wtab"><span>🏠</span><span>📷</span></div>
+          <div class="avatar">🧑‍🎤<span class="dot"></span></div>
+        </div>
+        <div class="logo"><span class="op">OP</span> <span class="snap">SNAP</span></div>
+        <div class="body" style="align-items:center;gap:14px">
+          <div style="width:100%;aspect-ratio:1/1.05;border-radius:20px;border:5px solid var(--gold);position:relative;
+            background:linear-gradient(180deg,#243a2e,#16121c);box-shadow:inset 0 0 0 2px var(--gold-hi),var(--ground-soft);display:flex;align-items:center;justify-content:center">
+            <span class="binder brk tl" style="position:absolute;top:10px;left:10px"></span>
+            <div style="position:absolute;top:10px;left:10px;width:20px;height:20px;border:3px solid var(--gold);border-right:0;border-bottom:0;border-radius:8px 0 0 0"></div>
+            <div style="position:absolute;top:10px;right:10px;width:20px;height:20px;border:3px solid var(--gold);border-left:0;border-bottom:0;border-radius:0 8px 0 0"></div>
+            <div style="position:absolute;bottom:10px;left:10px;width:20px;height:20px;border:3px solid var(--gold);border-right:0;border-top:0;border-radius:0 0 0 8px"></div>
+            <div style="position:absolute;bottom:10px;right:10px;width:20px;height:20px;border:3px solid var(--gold);border-left:0;border-top:0;border-radius:0 0 8px 0"></div>
+            <div style="font-size:60px">☸️</div>
+            <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;color:var(--cream);font-weight:800;font-size:12px">Line up your card…</div>
+          </div>
+          <div style="font-weight:800;font-size:12px;color:var(--on-light);opacity:.8;text-align:center">Point your Den Den Mushi at a One Piece card</div>
+          <span class="btn coral" style="width:auto;padding:15px 30px;font-size:14px">📸 Snap Card</span>
+        </div>
+        <div class="navbar">
+          <div class="nav on"><span class="ic">📷</span><small>Scan</small></div>
+          <div class="nav"><span class="ic">🧰</span><small>Cards</small></div>
+          <div class="nav"><span class="ic">🔍</span><small>Search</small></div>
+          <div class="nav"><span class="ic">💬</span><small>Chat</small></div>
+          <div class="nav"><span class="ic">👤</span><small>Me</small></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 3 SCAN RESULT -->
+    <div class="device">
+      <p class="scrlabel">3 · Snapped! (Result)</p>
+      <p class="scrnote">Card identified → its TCGplayer market value → add it in.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>🏠</span><span>📷</span></div><div class="xbtn">✕</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:16px">✨</span><span class="tt">Snapped!</span><span class="peek">🤩</span></div></div>
+        <div class="body" style="align-items:center;gap:10px">
+          <div class="cart foil" style="width:118px"><div class="em">👒</div><span class="cc">OP01-001 · SEC</span></div>
+          <div style="text-align:center"><div class="h2">Monkey D. Luffy</div><div class="cap">Romance Dawn · Secret Rare</div></div>
+          <div class="goldframe" style="width:100%;display:flex;align-items:center;justify-content:space-between">
+            <div><div class="lab" style="font-size:9px;font-weight:900;text-transform:uppercase;color:var(--on-dark-dim)">TCGplayer Market</div><div class="bignum">$212.40</div></div>
+            <span class="schip add">✔ Match 99%</span>
+          </div>
+          <div style="width:100%"><div class="cap" style="margin-bottom:5px">Condition</div>
+            <div class="pills"><span class="pill" style="background:var(--coral);border:2px solid var(--coral-edge)">NM</span><span class="pill">LP</span><span class="pill">MP</span><span class="pill">DMG</span></div>
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:9px;margin-top:2px">
+            <span class="btn coral">➕ Add to Collection</span>
+            <span class="btn ghost">📸 Scan Again</span>
+          </div>
+        </div>
+        <div class="statbar">
+          <div class="stat"><div class="lab">Cards Scanned Today</div><div class="val">6</div></div>
+          <div class="stat lv"><div class="lab">Level</div><div class="val">Lv.4 🏴‍☠️</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 4 CARD DETAIL -->
+    <div class="device">
+      <p class="scrlabel">4 · Card Detail</p>
+      <p class="scrnote">One card up close — value, condition, and who else owns it.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>‹</span><span>🧰</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span class="tt">Card</span><span class="peek">🦉</span></div></div>
+        <div class="body" style="align-items:center;gap:10px">
+          <div class="cart rare" style="width:110px"><div class="em">🔥</div><span class="cc">OP05-060 · SR</span></div>
+          <div style="text-align:center"><div class="h2">Portgas D. Ace</div><div class="cap">Awakening of the New Era · Super Rare</div></div>
+          <div class="goldframe" style="width:100%;display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-size:9px;font-weight:900;text-transform:uppercase;color:var(--on-dark-dim)">Market · NM</div><div class="bignum">$41.90</div></div>
+            <span class="schip blue">📈 +$3 / wk</span>
+          </div>
+          <div class="navy pad" style="width:100%;display:flex;align-items:center;gap:9px">
+            <span style="font-size:18px">👥</span>
+            <div style="flex:1"><div class="nm" style="font-size:12px">14 collectors own this</div><div class="sub2">3 near you • tap to find a trade</div></div>
+            <span style="color:var(--coral);font-weight:900">›</span>
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:9px">
+            <span class="btn coral">📚 Move to Binder</span>
+            <span class="btn ghost">⭐ Add to Want List</span>
+          </div>
+        </div>
+        <div class="statbar">
+          <div class="stat"><div class="lab">This Card's Value</div><div class="val">$42</div></div>
+          <div class="stat lv"><div class="lab">Level</div><div class="val">Lv.4 🏴‍☠️</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 5 COLLECTION -->
+    <div class="device">
+      <p class="scrlabel">5 · Collection</p>
+      <p class="scrnote">Archetype A — the set grid with completion progress.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>🏠</span><span>📷</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">🗃️</span><span class="tt">Collection</span><span class="peek">🗡️</span></div></div>
+        <div class="body">
+          <div class="pills"><span class="pill"><span style="color:var(--coral)">#</span> Set <span class="car">▾</span></span><span class="pill">🎨 Color <span class="car">▾</span></span><span class="pill"><span style="color:var(--amber)">★</span> Rarity <span class="car">▾</span></span></div>
+          <div class="grid3">
+            <div class="settile"><div class="cov cart c1">👒</div><span class="code">Romance Dawn</span><div class="prog"><i style="width:62%"></i></div></div>
+            <div class="settile"><div class="cov cart c2">🌊</div><span class="code">Paramount War</span><div class="prog"><i style="width:40%"></i></div></div>
+            <div class="settile"><div class="cov cart c3">🍖</div><span class="code">Mighty Enemies</span><div class="prog"><i style="width:88%"></i></div></div>
+            <div class="settile"><div class="cov cart c4">⚔️</div><span class="code">Kingdoms of Intrigue</span><div class="prog"><i style="width:25%"></i></div></div>
+            <div class="settile"><div class="cov cart c5">🔥</div><span class="code">New Era</span><div class="prog"><i style="width:55%"></i></div></div>
+            <div class="settile" style="opacity:.55"><div class="cov cart c6">🔒</div><span class="code" style="background:#8E8490">Wings of Captain</span><div class="prog"><i style="width:6%"></i></div></div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:6px;margin-top:2px">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--coral)"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--sky-deep)"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--sky-deep)"></span>
+          </div>
+        </div>
+        <div class="statbar">
+          <div class="stat"><div class="lab">Total Collected Cards</div><div class="val">147<span style="color:var(--on-dark-dim);opacity:.6;font-size:14px">/402</span></div></div>
+          <div class="stat lv"><div class="lab">Level</div><div class="val">Lv.4 🏴‍☠️</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 6 BINDER -->
+    <div class="device">
+      <p class="scrlabel">6 · Binder / Set</p>
+      <p class="scrnote">Archetype B — a bound page of 3×3 card slots.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>‹</span><span>🗃️</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span class="tt" style="font-size:18px">Romance Dawn</span><span class="peek">🦌</span></div></div>
+        <div class="body">
+          <div class="pills" style="justify-content:center"><span class="pill"><span style="color:var(--coral)">#</span> No. <span class="car">▾</span></span><span class="pill"><span style="color:var(--amber)">★</span> Rarity <span class="car">▾</span></span></div>
+          <div class="binder">
+            <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+            <div class="grid3" style="gap:8px">
+              <div class="cart c1"><div class="em">👒</div><span class="cc">001</span></div>
+              <div class="cart c6"><div class="em">🗡️</div><span class="cc">002</span></div>
+              <div class="cart empty"></div>
+              <div class="cart c3"><div class="em">🍖</div><span class="cc">004</span></div>
+              <div class="cart empty"></div>
+              <div class="cart c2"><div class="em">🧭</div><span class="cc">006</span></div>
+              <div class="cart c4"><div class="em">🤡</div><span class="cc">007</span></div>
+              <div class="cart c5"><div class="em">✨</div><span class="cc">008</span></div>
+              <div class="cart empty"></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--coral)"></span><span style="width:8px;height:8px;border-radius:50%;background:var(--sky-deep)"></span></div>
+        </div>
+        <div class="statbar">
+          <div class="stat"><div class="lab">OP-01 Progress</div><div class="val">21<span style="color:var(--on-dark-dim);opacity:.6;font-size:14px">/72</span></div></div>
+          <div class="stat lv"><div class="lab">Level</div><div class="val">Lv.4 🏴‍☠️</div></div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <p class="grouphead">🧭 Discovery &amp; Trading</p>
+  <p class="groupsub">The hero loop — search a card, find who owns it, message them, then rate the trade.</p>
+  <div class="gallery">
+
+    <!-- 7 SEARCH -->
+    <div class="device">
+      <p class="scrlabel">7 · Search → Who Owns It</p>
+      <p class="scrnote">The hero feature. Search any card, see the owners.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>🏠</span><span>📷</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">🔍</span><span class="tt">Search</span><span class="peek">🧐</span></div></div>
+        <div class="body">
+          <div class="searchbar"><span>🔍</span><span>Portgas D. Ace…</span></div>
+          <div class="navy pad" style="display:flex;align-items:center;gap:9px">
+            <div class="cart rare" style="width:38px"><div class="em" style="font-size:14px;top:3px">🔥</div></div>
+            <div style="flex:1"><div class="nm" style="font-size:12px">Portgas D. Ace</div><div class="sub2">OP05-060 · SR · $41.90</div></div>
+          </div>
+          <div class="cap">14 owners — 3 near you 📍</div>
+          <div class="lrow"><div class="av2">🧑‍🚀</div><div style="flex:1"><div class="nm">KaizokuKing</div><div class="sub2">NM · 2 km away · ⭐4.9</div></div><span class="btn coral sm">💬</span></div>
+          <div class="lrow"><div class="av2">🧑‍🎨</div><div style="flex:1"><div class="nm">GrandLineGal</div><div class="sub2">LP · 5 km · ⭐5.0</div></div><span class="btn coral sm">💬</span></div>
+          <div class="lrow"><div class="av2">🧔</div><div style="flex:1"><div class="nm">RogerFan88</div><div class="sub2">NM · 8 km · ⭐4.7</div></div><span class="btn coral sm">💬</span></div>
+          <div class="lrow"><div class="av2">🧑</div><div style="flex:1"><div class="nm">SunnyGoing</div><div class="sub2">MP · 12 km · ⭐4.8</div></div><span class="btn coral sm">💬</span></div>
+        </div>
+        <div class="navbar">
+          <div class="nav"><span class="ic">📷</span><small>Scan</small></div>
+          <div class="nav"><span class="ic">🧰</span><small>Cards</small></div>
+          <div class="nav on"><span class="ic">🔍</span><small>Search</small></div>
+          <div class="nav"><span class="ic">💬</span><small>Chat</small></div>
+          <div class="nav"><span class="ic">👤</span><small>Me</small></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 8 PUBLIC COLLECTION -->
+    <div class="device">
+      <p class="scrlabel">8 · Owner's Collection</p>
+      <p class="scrnote">Someone's public shop window — with their trust rating.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>‹</span><span>🔍</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span class="tt" style="font-size:18px">KaizokuKing</span><span class="peek">🧑‍🚀</span></div></div>
+        <div class="body">
+          <div class="navy pad" style="display:flex;align-items:center;gap:10px">
+            <div class="av2" style="width:42px;height:42px;font-size:20px">🧑‍🚀</div>
+            <div style="flex:1">
+              <div style="display:flex;gap:6px;align-items:center"><span class="nm">KaizokuKing</span><span class="lvpill">Lv.9</span></div>
+              <div class="sub2"><span class="stars">★★★★★</span> 4.9 · 37 trades</div>
+            </div>
+            <span class="schip trust">🛡️ Trusted</span>
+          </div>
+          <div class="goldframe" style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-size:9px;font-weight:900;text-transform:uppercase;color:var(--on-dark-dim)">Collection Value</div><div class="bignum">$4,120</div></div>
+            <div style="text-align:right"><div style="font-size:9px;font-weight:900;text-transform:uppercase;color:var(--on-dark-dim)">Cards</div><div class="bignum" style="color:#fff;font-size:20px">312</div></div>
+          </div>
+          <div class="cap">Their cards</div>
+          <div class="grid3" style="gap:8px">
+            <div class="cart foil"><div class="em">🔥</div><span class="cc">$42</span></div>
+            <div class="cart c2"><div class="em">🌊</div><span class="cc">$8</span></div>
+            <div class="cart c4"><div class="em">⚔️</div><span class="cc">$15</span></div>
+            <div class="cart c5"><div class="em">✨</div><span class="cc">$60</span></div>
+            <div class="cart c1"><div class="em">👒</div><span class="cc">$120</span></div>
+            <div class="cart c3"><div class="em">🍖</div><span class="cc">$5</span></div>
+          </div>
+        </div>
+        <div class="statbar" style="border-radius:16px 16px 0 0">
+          <span class="btn coral" style="border-radius:13px">💬 Message KaizokuKing</span>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 9 MESSAGES -->
+    <div class="device">
+      <p class="scrlabel">9 · Messages</p>
+      <p class="scrnote">Conversation list — where trades get arranged.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>🏠</span><span>📷</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">💬</span><span class="tt">Messages</span><span class="peek">🐦</span></div></div>
+        <div class="body">
+          <div class="lrow"><div class="av2">🧑‍🚀</div><div style="flex:1"><div class="nm">KaizokuKing</div><div class="sub2">Sure, I can trade the Ace! 🔥</div></div><div style="text-align:right"><div class="sub2">2m</div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--magenta);margin-top:3px"></span></div></div>
+          <div class="lrow"><div class="av2">🧑‍🎨</div><div style="flex:1"><div class="nm">GrandLineGal</div><div class="sub2">Deal! See you Sat at the shop</div></div><div class="sub2">1h</div></div>
+          <div class="lrow"><div class="av2">🧔</div><div style="flex:1"><div class="nm">RogerFan88</div><div class="sub2">You: what do you want for it?</div></div><div class="sub2">3h</div></div>
+          <div class="lrow"><div class="av2">🧑</div><div style="flex:1"><div class="nm">SunnyGoing</div><div class="sub2">Thanks for the trade! ⭐</div></div><div class="sub2">2d</div></div>
+        </div>
+        <div class="navbar">
+          <div class="nav"><span class="ic">📷</span><small>Scan</small></div>
+          <div class="nav"><span class="ic">🧰</span><small>Cards</small></div>
+          <div class="nav"><span class="ic">🔍</span><small>Search</small></div>
+          <div class="nav on"><span class="ic">💬</span><small>Chat</small></div>
+          <div class="nav"><span class="ic">👤</span><small>Me</small></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 10 CHAT -->
+    <div class="device">
+      <p class="scrlabel">10 · Chat</p>
+      <p class="scrnote">The card in question is pinned; talk, then meet up.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>‹</span><span>💬</span></div><div class="avatar">🧑‍🚀</div></div>
+        <div class="signrow"><div class="sign"><span class="tt" style="font-size:18px">KaizokuKing</span><span class="peek">🧑‍🚀</span></div></div>
+        <div class="body" style="gap:9px">
+          <div class="navy pad" style="display:flex;align-items:center;gap:8px;padding:8px">
+            <div class="cart rare" style="width:30px"><div class="em" style="font-size:12px;top:2px">🔥</div></div>
+            <div style="flex:1"><div class="nm" style="font-size:11px">Portgas D. Ace · $42</div><div class="sub2">Discussing this trade</div></div>
+            <span class="schip gold">📌</span>
+          </div>
+          <div class="bubble them">Hey! Saw you have the Ace SR — still up for trade? 🔥</div>
+          <div class="bubble me">Yeah! Looking for a Nami OP-02 alt art</div>
+          <div class="bubble them">Perfect, I've got one NM. Meet at Grand Line Cards Sat?</div>
+          <div class="bubble me">Set sail ⚓ See you at 2</div>
+        </div>
+        <div class="statbar" style="gap:8px;align-items:center;border-radius:16px 16px 0 0">
+          <div class="searchbar" style="flex:1;border-radius:999px;background:var(--navy);border-color:var(--slot-line)"><span>Message…</span></div>
+          <span style="width:40px;height:40px;border-radius:50%;background:linear-gradient(180deg,var(--coral-hi),var(--coral));border:2px solid var(--coral-edge);box-shadow:0 3px 0 var(--coral-lo);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex:none">➤</span>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 11 CONFIRM & RATE -->
+    <div class="device">
+      <p class="scrlabel">11 · Confirm &amp; Rate</p>
+      <p class="scrnote">After the trade: update cards + rate your partner (FB-Marketplace style).</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div style="width:34px"></div><div class="xbtn">✕</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">🤝</span><span class="tt" style="font-size:19px">Trade Done?</span><span class="peek">😊</span></div></div>
+        <div class="body" style="gap:11px">
+          <div class="navy pad" style="text-align:center">
+            <div class="sub2" style="margin-bottom:6px">Did you trade with</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:7px"><div class="av2">🧑‍🚀</div><span class="nm" style="font-size:15px">KaizokuKing</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div class="cap">1 · Update your cards</div>
+            <div style="display:flex;gap:8px">
+              <div class="navy pad" style="flex:1;text-align:center"><div class="sub2" style="color:var(--coral)">− Gave</div><div class="cart c2" style="width:38px;margin:5px auto 0"><div class="em" style="font-size:14px;top:3px">🌊</div></div><div class="sub2" style="margin-top:3px">Nami</div></div>
+              <div class="navy pad" style="flex:1;text-align:center"><div class="sub2" style="color:var(--green)">+ Got</div><div class="cart rare" style="width:38px;margin:5px auto 0"><div class="em" style="font-size:14px;top:3px">🔥</div></div><div class="sub2" style="margin-top:3px">Ace</div></div>
+            </div>
+          </div>
+          <div class="cap">2 · Rate your trade partner</div>
+          <div style="text-align:center;font-size:26px;letter-spacing:3px;color:var(--amber)">★★★★★</div>
+          <div class="searchbar" style="background:#fff;border-color:var(--wood-edge);color:var(--on-light)"><span>Smooth trade, card as described…</span></div>
+          <span class="btn coral">✔ Confirm &amp; Submit</span>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <p class="grouphead">🏆 Social, Profile &amp; Local Shops</p>
+  <p class="groupsub">Competition, your reputation, your want list, and the real-world card-shop scene.</p>
+  <div class="gallery">
+
+    <!-- 12 LEADERBOARD -->
+    <div class="device">
+      <p class="scrlabel">12 · Leaderboard</p>
+      <p class="scrnote">Archetype C — ranked by total collection value.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>🏠</span><span>📷</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">🏆</span><span class="tt">Leaderboard</span><span class="peek">😎</span></div></div>
+        <div class="body">
+          <div class="toggle"><span class="seg">👥 Friends</span><span class="seg on">🌐 Global</span></div>
+          <div style="display:flex;align-items:flex-end;gap:6px;justify-content:center">
+            <div class="navy pad" style="width:30%;text-align:center;padding:8px 4px"><div class="rank s" style="margin:0 auto 4px">2</div><div class="av2" style="margin:0 auto">🧑‍🎨</div><div class="sub2" style="margin-top:2px">Gal</div><div class="nm" style="font-size:11px;color:var(--gold-hi)">$6.1k</div></div>
+            <div class="navy pad" style="width:34%;text-align:center;padding:12px 4px;border-color:var(--gold)"><div style="font-size:20px">👑</div><div class="rank g" style="margin:0 auto 4px">1</div><div class="av2" style="margin:0 auto;width:34px;height:34px">🧑‍🚀</div><div class="sub2" style="margin-top:2px">Kaizoku</div><div class="nm" style="font-size:12px;color:var(--gold-hi)">$11.2k</div></div>
+            <div class="navy pad" style="width:30%;text-align:center;padding:8px 4px"><div class="rank b" style="margin:0 auto 4px">3</div><div class="av2" style="margin:0 auto">🧔</div><div class="sub2" style="margin-top:2px">Roger</div><div class="nm" style="font-size:11px;color:var(--gold-hi)">$5.8k</div></div>
+          </div>
+          <div class="lrow"><span class="rank">4</span><div class="av2">🧑</div><div style="flex:1"><div class="nm">SunnyGoing</div></div><span class="nm" style="font-size:12px;color:var(--gold-hi)">$4.1k</span></div>
+          <div class="lrow self"><span class="rank">16</span><div class="av2">🧑‍🎤</div><div style="flex:1"><div class="nm">You</div></div><span class="nm" style="font-size:12px;color:var(--gold-hi)">$1.9k</span></div>
+        </div>
+        <div class="statbar">
+          <div class="stat"><div class="lab">Your Global Rank</div><div class="val">16</div></div>
+          <div class="stat lv"><div class="lab">Level</div><div class="val">Lv.4 🏴‍☠️</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 13 PROFILE -->
+    <div class="device">
+      <p class="scrlabel">13 · Profile (Me)</p>
+      <p class="scrnote">Your identity + the reputation that makes trading safe.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>⚙️</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">🏴‍☠️</span><span class="tt" style="font-size:18px">Captain You</span><span class="peek">🧑‍🎤</span></div></div>
+        <div class="body">
+          <div class="navy pad" style="display:flex;align-items:center;gap:10px">
+            <div class="av2" style="width:46px;height:46px;font-size:22px">🧑‍🎤</div>
+            <div style="flex:1"><div style="display:flex;gap:6px;align-items:center"><span class="nm" style="font-size:15px">You</span><span class="lvpill">Lv.4</span></div>
+            <div class="sub2"><span class="stars">★★★★★</span> 4.8 · 12 trades</div></div>
+            <span class="schip trust">🛡️ Trusted</span>
+          </div>
+          <div style="display:flex;gap:9px">
+            <div class="goldframe" style="flex:1;text-align:center"><div style="font-size:9px;font-weight:900;text-transform:uppercase;color:var(--on-dark-dim)">Value</div><div class="bignum">$1.9k</div></div>
+            <div class="goldframe" style="flex:1;text-align:center"><div style="font-size:9px;font-weight:900;text-transform:uppercase;color:var(--on-dark-dim)">Cards</div><div class="bignum" style="color:#fff">147</div></div>
+            <div class="goldframe" style="flex:1;text-align:center"><div style="font-size:9px;font-weight:900;text-transform:uppercase;color:var(--on-dark-dim)">Sets</div><div class="bignum" style="color:#fff">5</div></div>
+          </div>
+          <div class="cap">Badges</div>
+          <div class="pills"><span class="schip gold">🛡️ Trusted Trader</span><span class="schip new">🔥 Ace Owner</span><span class="schip blue">📚 Set Master</span></div>
+          <div class="cap">Recent reviews</div>
+          <div class="navy pad" style="padding:9px"><div style="display:flex;justify-content:space-between"><span class="nm" style="font-size:11px">GrandLineGal</span><span class="stars" style="font-size:11px">★★★★★</span></div><div class="sub2">Smooth trade, card exactly as described!</div></div>
+        </div>
+        <div class="navbar">
+          <div class="nav"><span class="ic">📷</span><small>Scan</small></div>
+          <div class="nav"><span class="ic">🧰</span><small>Cards</small></div>
+          <div class="nav"><span class="ic">🔍</span><small>Search</small></div>
+          <div class="nav"><span class="ic">💬</span><small>Chat</small></div>
+          <div class="nav on"><span class="ic">👤</span><small>Me</small></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 14 WANT LIST -->
+    <div class="device">
+      <p class="scrlabel">14 · Want List</p>
+      <p class="scrnote">Cards you're hunting — the app tells you who has them.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>‹</span><span>👤</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">⭐</span><span class="tt" style="font-size:19px">Want List</span><span class="peek">🤩</span></div></div>
+        <div class="body">
+          <div class="cap">You're hunting 4 cards · 6 nearby matches 📍</div>
+          <div class="lrow"><div class="cart c2" style="width:34px"><div class="em" style="font-size:13px;top:2px">🌊</div></div><div style="flex:1"><div class="nm">Nami · OP02 Alt</div><div class="sub2">$34 · 3 owners nearby</div></div><span class="btn coral sm">Find</span></div>
+          <div class="lrow"><div class="cart c4" style="width:34px"><div class="em" style="font-size:13px;top:2px">⚔️</div></div><div style="flex:1"><div class="nm">Zoro · OP04 SR</div><div class="sub2">$28 · 2 owners nearby</div></div><span class="btn coral sm">Find</span></div>
+          <div class="lrow"><div class="cart c5" style="width:34px"><div class="em" style="font-size:13px;top:2px">✨</div></div><div style="flex:1"><div class="nm">Shanks · OP01 SEC</div><div class="sub2">$180 · 1 owner nearby</div></div><span class="btn coral sm">Find</span></div>
+          <div class="lrow" style="opacity:.6"><div class="cart c3" style="width:34px"><div class="em" style="font-size:13px;top:2px">🍖</div></div><div style="flex:1"><div class="nm">Sanji · OP03</div><div class="sub2">$12 · none nearby yet</div></div><span class="btn ghost sm">Alert</span></div>
+        </div>
+        <div class="statbar">
+          <div class="stat"><div class="lab">Nearby Matches</div><div class="val">6</div></div>
+          <div class="stat lv"><div class="lab">Level</div><div class="val">Lv.4 🏴‍☠️</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 15 LOCAL SHOPS -->
+    <div class="device">
+      <p class="scrlabel">15 · Local Card Shops</p>
+      <p class="scrnote">Find shops to buy, trade &amp; play — where trades happen.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>🏠</span><span>📷</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span style="font-size:15px">🏪</span><span class="tt" style="font-size:19px">Card Shops</span><span class="peek">🦜</span></div></div>
+        <div class="body">
+          <div class="maptop">
+            <span class="pin" style="top:30px;left:60px">📍</span><span class="pin" style="top:66px;left:140px">📍</span><span class="pin" style="top:44px;left:210px">📍</span>
+            <span class="pin" style="bottom:10px;left:110px;font-size:16px">⛵</span>
+            <div style="position:absolute;bottom:6px;right:8px" class="schip gold">You 📌</div>
+          </div>
+          <div class="lrow"><div class="av2" style="border-radius:12px">🏪</div><div style="flex:1"><div class="nm">Grand Line Cards</div><div class="sub2">1.2 km · Open till 9 · 🗓️ Tourney Sat</div></div><span class="schip add" style="font-size:9px">✔ Verified</span></div>
+          <div class="lrow"><div class="av2" style="border-radius:12px">🏪</div><div style="flex:1"><div class="nm">Thousand Sunny TCG</div><div class="sub2">3.4 km · Open till 8 · 🗓️ Release Fri</div></div><span class="schip add" style="font-size:9px">✔ Verified</span></div>
+          <div class="lrow"><div class="av2" style="border-radius:12px">🏪</div><div style="flex:1"><div class="nm">Baratie Cards &amp; Games</div><div class="sub2">5.0 km · Closed · opens 11am</div></div></div>
+        </div>
+        <div class="statbar">
+          <div class="stat"><div class="lab">Shops Near You</div><div class="val">6</div></div>
+          <div class="stat lv"><div class="lab">Level</div><div class="val">Lv.4 🏴‍☠️</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 16 SHOP PROFILE -->
+    <div class="device">
+      <p class="scrlabel">16 · Shop Profile &amp; Events</p>
+      <p class="scrnote">Shops publish event news (login required); users comment.</p>
+      <div class="screen"><div class="sc">
+        <div class="topbar"><div class="wtab"><span>‹</span><span>🏪</span></div><div class="avatar">🧑‍🎤</div></div>
+        <div class="signrow"><div class="sign"><span class="tt" style="font-size:15px">Grand Line Cards</span><span class="peek">🏪</span></div></div>
+        <div class="body">
+          <div class="navy pad" style="display:flex;align-items:center;gap:9px;padding:9px">
+            <div class="av2" style="width:40px;height:40px;border-radius:12px;font-size:20px">🏪</div>
+            <div style="flex:1"><div class="nm" style="font-size:12px">1.2 km · Open till 9pm</div><div class="sub2">📍 42 Sabaody St · ☎️ tap to call</div></div>
+            <span class="schip add" style="font-size:9px">✔ Verified</span>
+          </div>
+          <div class="goldframe" style="padding:10px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="schip gold" style="font-size:9px">🗓️ EVENT</span><span class="sub2" style="color:var(--gold-hi)">posted by shop</span></div>
+            <div class="nm" style="font-size:13px">OP-06 Release Tournament</div>
+            <div class="sub2">Sat 2pm · ¥1,000 entry · prizes + promos 🏆</div>
+            <span class="btn gold sm" style="width:100%;margin-top:8px">I'm Going ⚓ (23)</span>
+          </div>
+          <div class="cap">💬 Comments</div>
+          <div class="navy pad" style="padding:8px"><div style="display:flex;justify-content:space-between"><span class="nm" style="font-size:11px">KaizokuKing</span><span class="sub2">1h</span></div><div class="sub2">Bringing my deck! Anyone want to trade before?</div></div>
+        </div>
+        <div class="statbar" style="gap:8px;align-items:center;border-radius:16px 16px 0 0">
+          <div class="searchbar" style="flex:1;border-radius:999px;background:var(--navy);border-color:var(--slot-line)"><span>Add a comment…</span></div>
+          <span style="width:40px;height:40px;border-radius:50%;background:linear-gradient(180deg,var(--coral-hi),var(--coral));border:2px solid var(--coral-edge);box-shadow:0 3px 0 var(--coral-lo);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex:none">➤</span>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+<!--SCREENS-->
+
+  <p style="text-align:center;color:#cdbccb;font-weight:800;font-size:12px;margin-top:44px;opacity:.7">
+    Emoji stand in for the game's illustrated mascots, card art &amp; icons · all colors, depth &amp; components follow the OP Snap design tokens
+  </p>
+</div>
+</body>
+</html>
