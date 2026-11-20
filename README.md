@@ -13,7 +13,15 @@ Fastly CDN.
 /privacy.html     Cards and Friends privacy policy (linked from the app
                   stores — keep this URL stable)
 /projects/        standalone project pages (own CSS, independent of the site)
+/assets/logo/     the logo: jellytek-logo.svg (brand colours, for light
+                  grounds), jellytek-logo-on-dark.svg (purples lifted so it
+                  reads on the indigo site — used in the masthead), and
+                  jellytek-mark.svg (mark only — the favicon)
 ```
+
+The logo SVGs are rebuilt from the Illustrator PDF: each shape is a plain path
+with its gradient trimmed to eight stops (14 KB instead of the 155 KB a raw
+PDF→SVG conversion gives).
 
 The two products are real and live elsewhere:
 

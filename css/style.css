@@ -106,20 +106,17 @@ a.link:hover { color: var(--accent-hover); border-bottom-color: currentColor; }
 /* ── Masthead ───────────────────────────────────────────────────────────── */
 .masthead { text-align: center; }
 
-.masthead__mark {
-  width: clamp(3.5rem, 9vw, 4.5rem);
-  color: var(--accent);
-}
+.masthead__name { margin: 0; line-height: 0; }
 
-.masthead__name {
-  margin: 0.5rem 0 0;
-  font-size: clamp(2.25rem, 7vw, 3.25rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+/* the dark-ground cut of the logo: same gradients, purples lifted to read on indigo */
+.masthead__logo {
+  width: clamp(14rem, 55vw, 21rem);
+  max-width: 100%;
+  height: auto;
 }
 
 .masthead__tag {
-  margin: 0.25rem 0 0;
+  margin: 0.6rem 0 0;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   color: var(--text-tertiary);
